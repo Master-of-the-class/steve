@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-y: auto;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 3vw;
+    }
+
+    /* ligne calcul + réponse */
+    .line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      width: 100%;
+      font-size: 6vw;
+      margin: 1.5vh 0;
+      word-break: break-word;
+    }
+
+    .answer {
+      font-size: 6vw;
+      color: green;
+      min-width: 120px;
+      text-align: right;
+      display: none;
+    }
+
+    .buttons {
+      margin-top: 2vh;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 600px) {
+      .line {
+        font-size: 8vw;
+      }
+
+      .answer {
+        font-size: 8vw;
+      }
+
+      button {
+        font-size: 13px;
+        padding: 7px 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="line">
+      <span id="addition"></span>
+      <span class="answer" id="additionAnswer"></span>
+    </div>
+
+    <div class="line">
+      <span id="subtraction"></span>
+      <span class="answer" id="subtractionAnswer"></span>
+    </div>
+
+    <div class="buttons">
+
+      <button onclick="generateProblems()">
+        Nouveaux calculs
+      </button>
+
+      <button onclick="toggleAnswers()" id="toggleBtn">
+        Afficher les réponses
+      </button>
+
+      <button onclick="goBack()">
+        Retour
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    let addResult = 0;
+    let subResult = 0;
+
+    function random4Digit() {
+      return Math.floor(Math.random() * 9000) + 1000;
+    }
+
+    function generateProblems() {
+
+      let a = random4Digit();
+      let b = random4Digit();
+
+      let c = random4Digit();
+      let d = random4Digit();
+
+      if (c < d) {
+        [c, d] = [d, c];
+      }
+
+      addResult = a + b;
+      subResult = c - d;
+
+      document.getElementById("addition").textContent =
+        `${a} + ${b} =`;
+
+      document.getElementById("subtraction").textContent =
+        `${c} - ${d} =`;
+
+      document.getElementById("additionAnswer").textContent =
+        addResult;
+
+      document.getElementById("subtractionAnswer").textContent =
+        subResult;
+
+      document.querySelectorAll(".answer").forEach(el => {
+        el.style.display = "none";
+      });
+
+      document.getElementById("toggleBtn").textContent =
+        "Afficher les réponses";
+    }
+
+    function toggleAnswers() {
+
+      let answers = document.querySelectorAll(".answer");
+      let button = document.getElementById("toggleBtn");
+
+      let isVisible = answers[0].style.display === "block";
+
+      answers.forEach(el => {
+        el.style.display = isVisible ? "none" : "block";
+      });
+
+      button.textContent = isVisible
+        ? "Afficher les réponses"
+        : "Cacher les réponses";
+    }
+
+    function goBack() {
+      window.location.href = "menu-add-sous.html";
+    }
+
+    generateProblems();
+  </script>
+
+</body>
+</html>menu-add-sous.html";
+    }
+
+    generateProblems();
+
+  </script>
+
+</body>
+</html>

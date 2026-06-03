@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Qui est le coupable?</title>
+
+<style>
+body { font-family: Arial; text-align: center; }
+
+#plateau {
+  position: relative;
+  width: 600px;
+  margin: auto;
+  border: 2px solid black;
+  display: none;
+}
+
+#plateau img { width: 100%; }
+
+.pion {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid black;
+  cursor: grab;
+}
+.pion:active { cursor: grabbing; }
+
+#ui, #mjPanel { display: none; margin-top: 20px; }
+
+#mjPanel { background: #eee; padding: 10px; }
+
+.draggable {
+  position: absolute;
+  cursor: grab;
+  z-index: 1000;
+}
+.draggable:active { cursor: grabbing; }
+
+#ordreVisuel {
+  left: 20px;
+  top: 120px;
+}
+
+.joueurBadge {
+  display: inline-block;
+  padding: 6px 10px;
+  margin: 4px;
+  border-radius: 10px;
+  color: white;
+  font-weight: bold;
+}
+
+.actif {
+  outline: 3px solid black;
+  transform: scale(1.2);
+}
+
+#deVisuel {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border: 2px solid black;
+  border-radius: 10px;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  left: 120px;
+  top: 60px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="menu">
+
+<h2>Nombre de joueurs</h2>
+<select id="nbJoueurs" onchange="genererInputsJoueurs()">
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+</select>
+
+<div id="nomsJoueurs"></div>
+
+<h2>Mode</h2>
+<select id="modeJeu">
+<option value="classique">Classique</option>
+<option value="equitable">Équitable</option>
+</select>
+
+<h2>Dé</h2>
+<select id="typeDe">
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="6" selected>6</option>
+<option value="12">12</option>
+</select>
+
+<h2>Taille pions</h2>
+<select id="taillePions">
+<option value="20">Petit</option>
+<option value="40" selected>Grand</option>
+</select>
+
+<br><br>
+<button onclick="demarrer()">Démarrer</button>
+
+</div>
+
+<div id="plateau">
+<img src="plateau.png">
+</div>
+
+<div id="ui">
+<p id="tour" class="draggable" style="left:20px; top:20px;"></p>
+
+<div id="ordreVisuel" class="draggable"></div>
+
+<button id="btnDe" class="draggable" style="left:20px; top:60px;" onclick="lancerDe()">Lancer le dé</button>
+
+<div id="deVisuel" class="draggable">🎲</div>
+
+<p id="de"></p>
+
+<button onclick="sauvegarder()">Sauvegarder</button>
+<button onclick="charger()">Charger</button>
+</div>
+
+<div id="mjPanel">
+<h3>Révéler la solution secrète du crime</h3>
+<button onclick="toggleSolution()">Solution</button>
+<p id="solution" style="display:none;"></p>
+</div>
+
+<script>
+
+const suspects = ["Green","Mustard","Peacock","Plum","Scarlet","White"];
+const armes = ["Couteau","Chandelier","Pistolet","Corde","Clé à molette","Tuyau"];
+const pieces = ["Salle de bain","Bureau","Salle à manger","Salle de jeux","Garage","Chambre","Salon","Cuisine","Cour"];
+
+let joueurs = [];
+let ordreJeu = [];
+let joueurActuel = 0;
+let deValeur = 0;
+let facesDe = 6;
+let solution = null;
+let modeJeu = "classique";
+let round = 1;
+
+let dragActif = true; // 🔥 NOUVEAU
+
+const plateau = document.getElementById("plateau");
+
+/* INPUTS */
+function genererInputsJoueurs(){
+  const nb=parseInt(nbJoueurs.value);
+  nomsJoueurs.innerHTML="";
+  for(let i=0;i<nb;i++){
+    const input=document.createElement("input");
+    input.id="joueurNom"+i;
+    input.placeholder="Nom joueur "+(i+1);
+    input.style.display="block";
+    input.style.margin="5px auto";
+    nomsJoueurs.appendChild(input);
+  }
+}
+genererInputsJoueurs();
+
+/* MELANGE */
+function melangerOrdre(callback){
+  let i=12;
+
+  const interval=setInterval(()=>{
+
+    const temp = joueurs.filter(j => j.actif); // 🔥 IMPORTANT
+
+    for(let k=temp.length-1;k>0;k--){
+      const j=Math.floor(Math.random()*(k+1));
+      [temp[k],temp[j]]=[temp[j],temp[k]];
+    }
+
+    ordreJeu = temp;
+
+    afficherOrdreVisuel();
+
+    i--;
+
+    if(i<=0){
+      clearInterval(interval);
+
+      ordreJeu = joueurs
+        .filter(j => j.actif) // 🔥 IMPORTANT
+        .sort(()=>Math.random()-0.5);
+
+      joueurActuel=0;
+
+      afficherOrdreVisuel();
+
+      if(callback) callback();
+    }
+
+  },80);
+}
+
+/* START */
+function demarrer(){
+
+  const nb=parseInt(nbJoueurs.value);
+  facesDe=parseInt(typeDe.value);
+  const taille=parseInt(taillePions.value);
+  modeJeu=document.getElementById("modeJeu").value;
+  round=1;
+
+  const couleurs=["red","yellow","blue","green","purple","black"];
+  joueurs=[];
+
+for(let i=0;i<6;i++){
+  joueurs.push({
+    nom: document.getElementById("joueurNom"+i)?.value || "J"+(i+1),
+    couleur: couleurs[i],
+    taille: taille,
+    actif: i < nb // 🔥 IMPORTANT
+  });
+}
+
+  rendreDraggable(btnDe);
+  rendreDraggable(tour);
+  rendreDraggable(deVisuel);
+  rendreDraggable(ordreVisuel);
+
+  joueurs.forEach((j,i)=>{
+    j.x=50+(i<3?-4:4);
+    j.y=50+((i%3)-1)*7;
+  });
+
+  solution={
+    suspect: suspects[Math.random()*6|0],
+    arme: armes[Math.random()*6|0],
+    piece: pieces[Math.random()*9|0]
+  };
+
+  menu.style.display="none";
+  plateau.style.display="block";
+  ui.style.display="block";
+  mjPanel.style.display="block";
+
+  initPions();
+  ordreJeu = joueurs.filter(j=>j.actif);
+melangerOrdre(updateTour);
+}
+
+/* PIONS */
+function initPions(){
+  plateau.querySelectorAll(".pion").forEach(p=>p.remove());
+  joueurs.forEach(j=>{
+    const p=document.createElement("div");
+    p.className="pion";
+    p.style.background=j.couleur;
+    p.style.width=j.taille+"px";
+    p.style.height=j.taille+"px";
+    plateau.appendChild(p);
+    j.element=p;
+    updatePos(j);
+
+    rendrePionDraggable(j); // 🔥
+  });
+}
+
+function updatePos(j){
+  j.element.style.left=j.x+"%";
+  j.element.style.top=j.y+"%";
+}
+
+/* DRAG PION */
+function rendrePionDraggable(j){
+  let isDragging=false;
+
+  j.element.addEventListener("mousedown",()=>{
+    if(!dragActif) return;
+    isDragging=true;
+  });
+
+  document.addEventListener("mousemove",(e)=>{
+    if(!isDragging) return;
+
+    const r=plateau.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width*100;
+    const y=(e.clientY-r.top)/r.height*100;
+
+    j.x=x; j.y=y;
+    updatePos(j);
+  });
+
+  document.addEventListener("mouseup",()=>{
+    isDragging=false;
+  });
+}
+
+/* CLICK */
+plateau.addEventListener("click",e=>{
+  if(deValeur<=0) return;
+
+  const r=plateau.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*100;
+  const y=(e.clientY-r.top)/r.height*100;
+
+  const j=ordreJeu[joueurActuel];
+  j.x=x; j.y=y;
+  updatePos(j);
+
+  deValeur--;
+
+  deVisuel.innerText = deValeur;
+
+  if(deValeur === 0){
+    dragActif = true; // 🔥 ACTIVE DRAG
+    setTimeout(()=>{
+      deVisuel.innerText = "🎲";
+      nextTour();
+    }, 300);
+  }
+});
+
+/* 🎲 */
+function lancerDe(){
+
+  if(deValeur > 0) return;
+
+  dragActif = false; // 🔥 DESACTIVE DRAG
+
+  let ticks = 10;
+
+  const interval = setInterval(()=>{
+
+    const rand = Math.floor(Math.random()*facesDe)+1;
+    deVisuel.innerText = rand;
+
+    ticks--;
+
+    if(ticks<=0){
+      clearInterval(interval);
+      deValeur=Math.floor(Math.random()*facesDe)+1;
+      deVisuel.innerText = deValeur;
+    }
+
+  },80);
+}
+
+/* TOUR */
+function nextTour(){
+  joueurActuel++;
+  if(joueurActuel>=ordreJeu.length){
+    if(modeJeu==="equitable"){
+      round++;
+      melangerOrdre(()=>{
+        joueurActuel=0;
+        deValeur=0;
+        updateTour();
+      });
+      return;
+    } else {
+      joueurActuel=0;
+    }
+  }
+  deValeur=0;
+  updateTour();
+}
+
+function updateTour(){
+  tour.innerText="Tour de: "+ordreJeu[joueurActuel].nom+" (Tour "+round+")";
+  afficherOrdreVisuel();
+}
+
+function afficherOrdreVisuel(){
+  ordreVisuel.innerHTML="";
+  ordreJeu.forEach((j,i)=>{
+    const d=document.createElement("div");
+    d.className="joueurBadge";
+    d.style.background=j.couleur;
+    d.innerText=j.nom;
+    if(i===joueurActuel) d.classList.add("actif");
+    ordreVisuel.appendChild(d);
+  });
+}
+
+/* MJ */
+function toggleSolution(){
+  const el=document.getElementById("solution");
+  if(el.style.display==="none"){
+    el.style.display="block";
+    el.innerText=solution.suspect+" + "+solution.arme+" + "+solution.piece;
+  } else {
+    el.style.display="none";
+  }
+}
+
+/* SAVE / LOAD inchangé */
+function sauvegarder(){
+  localStorage.setItem("coupable",JSON.stringify({
+    joueurs,
+    ordreJeu: ordreJeu.map(j=>j.nom),
+    joueurActuel,
+    solution,
+    facesDe,
+    modeJeu,
+    round
+  }));
+  alert("Sauvegardé");
+}
+
+function charger(){
+  const data=JSON.parse(localStorage.getItem("coupable"));
+  if(!data) return alert("Aucune sauvegarde");
+
+  joueurs=data.joueurs;
+  joueurActuel=data.joueurActuel;
+  solution=data.solution;
+  facesDe=data.facesDe;
+  modeJeu=data.modeJeu;
+  round=data.round;
+
+  ordreJeu=data.ordreJeu.map(nom=>joueurs.find(j=>j.nom===nom));
+
+  menu.style.display="none";
+  plateau.style.display="block";
+  ui.style.display="block";
+  mjPanel.style.display="block";
+
+  initPions();
+  updateTour();
+
+  rendreDraggable(btnDe);
+  rendreDraggable(tour);
+  rendreDraggable(deVisuel);
+  rendreDraggable(ordreVisuel);
+}
+
+/* DRAG UI */
+function rendreDraggable(element){
+  let offsetX=0, offsetY=0, isDragging=false;
+
+  element.addEventListener("mousedown",e=>{
+    isDragging=true;
+    offsetX=e.clientX-element.offsetLeft;
+    offsetY=e.clientY-element.offsetTop;
+  });
+
+  document.addEventListener("mousemove",e=>{
+    if(!isDragging) return;
+    element.style.left=(e.clientX-offsetX)+"px";
+    element.style.top=(e.clientY-offsetY)+"px";
+  });
+
+  document.addEventListener("mouseup",()=>{ isDragging=false; });
+}
+
+</script>
+
+</body>
+</html>

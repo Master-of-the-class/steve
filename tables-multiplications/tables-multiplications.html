@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Défi Tables de Multiplication</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
+    overflow:hidden;
+    height:100vh;
+}
+
+.container{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    padding:20px;
+}
+
+#question{
+    font-size:6rem;
+    font-weight:bold;
+    text-align:center;
+    min-height:140px;
+    text-shadow:0 0 20px rgba(255,255,255,0.25);
+}
+
+.progress-container{
+    width:75%;
+    max-width:900px;
+    height:36px;
+    background:#334155;
+    border-radius:30px;
+    overflow:hidden;
+    border:2px solid #475569;
+}
+
+.progress-bar{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,#22c55e,#84cc16);
+}
+
+.controls{
+    margin-top:25px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:15px;
+}
+
+button{
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:1rem;
+    font-weight:bold;
+    padding:14px 22px;
+    transition:0.2s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+#nextBtn{
+    background:#2563eb;
+    color:white;
+}
+
+#showAnswerBtn{
+    background:#f59e0b;
+    color:white;
+}
+
+#tablesBtn{
+    background:#8b5cf6;
+    color:white;
+}
+
+#resetBtn{
+    background:#ef4444;
+    color:white;
+}
+
+#tablesInfo{
+    margin-top:15px;
+    color:#cbd5e1;
+    font-size:1rem;
+    text-align:center;
+}
+
+.scoreboard{
+    position:absolute;
+    width:220px;
+    background:rgba(15,23,42,0.95);
+    border:2px solid #475569;
+    border-radius:15px;
+    padding:15px;
+    user-select:none;
+    cursor:move;
+    box-shadow:0 0 20px rgba(0,0,0,0.4);
+}
+
+#teamA{
+    top:50%;
+    left:20px;
+    transform:translateY(-50%);
+}
+
+#teamB{
+    top:50%;
+    right:20px;
+    transform:translateY(-50%);
+}
+
+.teamName{
+    text-align:center;
+    font-size:1.4rem;
+    margin-bottom:10px;
+}
+
+.score{
+    text-align:center;
+    font-size:4rem;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.scoreButtons{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+}
+
+.scoreButtons button{
+    width:70px;
+    font-size:1.5rem;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="teamA" class="scoreboard">
+    <div class="teamName">Équipe A</div>
+    <div id="scoreA" class="score">0</div>
+
+
+<div class="scoreButtons">
+    <button onclick="changeScore('A',1)">+</button>
+    <button onclick="changeScore('A',-1)">−</button>
+</div>
+
+
+</div>
+
+<div id="teamB" class="scoreboard">
+    <div class="teamName">Équipe B</div>
+    <div id="scoreB" class="score">0</div>
+
+
+<div class="scoreButtons">
+    <button onclick="changeScore('B',1)">+</button>
+    <button onclick="changeScore('B',-1)">−</button>
+</div>
+
+
+</div>
+
+<div class="container">
+
+
+<div id="question">
+    Cliquez sur « Prochaine question »
+</div>
+
+<div class="progress-container">
+    <div id="progressBar" class="progress-bar"></div>
+</div>
+
+<div class="controls">
+    <button id="nextBtn">🎲 Prochaine question</button>
+    <button id="showAnswerBtn">👁 Afficher la réponse</button>
+    <button id="tablesBtn">⚙️ Choisir les tables</button>
+    <button id="resetBtn">🔄 Réinitialiser les scores</button>
+</div>
+
+<div id="tablesInfo">
+    Tables actives : 0,1,2,3,4,5,6,7,8,9,10
+</div>
+
+
+</div>
+
+<script>
+
+let scoreA = 0;
+let scoreB = 0;
+
+let answer = 0;
+let currentQuestion = "";
+
+let progressInterval = null;
+let answerTimeout = null;
+
+let activeTables = [];
+
+for(let i=0;i<=10;i++){
+    activeTables.push(i);
+}
+
+function changeScore(team,value){
+
+    if(team==="A"){
+        scoreA += value;
+        document.getElementById("scoreA").textContent = scoreA;
+    }
+    else{
+        scoreB += value;
+        document.getElementById("scoreB").textContent = scoreB;
+    }
+}
+
+document.getElementById("resetBtn").addEventListener("click",()=>{
+
+    scoreA = 0;
+    scoreB = 0;
+
+    document.getElementById("scoreA").textContent = 0;
+    document.getElementById("scoreB").textContent = 0;
+});
+
+document.getElementById("tablesBtn").addEventListener("click",()=>{
+
+    const value = prompt(
+`Entrez les tables désirées.
+
+Exemple :
+1,3,6,7,8,13
+
+Laissez vide pour revenir à 0-10`
+    );
+
+    if(value === null) return;
+
+    if(value.trim()===""){
+
+        activeTables=[];
+
+        for(let i=0;i<=10;i++){
+            activeTables.push(i);
+        }
+    }
+    else{
+
+        const tables = value
+            .split(",")
+            .map(v=>parseInt(v.trim()))
+            .filter(v=>!isNaN(v));
+
+        if(tables.length>0){
+            activeTables = tables;
+        }
+    }
+
+    document.getElementById("tablesInfo").textContent =
+        "Tables actives : " + activeTables.join(", ");
+});
+
+function stopAllTimers(){
+
+    clearInterval(progressInterval);
+    clearTimeout(answerTimeout);
+}
+
+function showAnswer(){
+
+    stopAllTimers();
+
+    document.getElementById("question").textContent =
+        currentQuestion + answer;
+
+    document.getElementById("progressBar").style.width = "100%";
+}
+
+function startCountdown(){
+
+    const bar = document.getElementById("progressBar");
+
+    let progress = 0;
+
+    progressInterval = setInterval(()=>{
+
+        progress += 1;
+
+        bar.style.width = progress + "%";
+
+        if(progress >= 100){
+            clearInterval(progressInterval);
+        }
+
+    },100);
+
+    answerTimeout = setTimeout(()=>{
+        showAnswer();
+    },10000);
+}
+
+function generateQuestion(){
+
+    stopAllTimers();
+
+    document.getElementById("progressBar").style.width = "0%";
+
+    const question = document.getElementById("question");
+
+    const shuffle = setInterval(()=>{
+
+        const a =
+        activeTables[Math.floor(Math.random()*activeTables.length)];
+
+        const b =
+        activeTables[Math.floor(Math.random()*activeTables.length)];
+
+        question.textContent = `${a} × ${b} = ?`;
+
+    },80);
+
+    setTimeout(()=>{
+
+        clearInterval(shuffle);
+
+        const a =
+        activeTables[Math.floor(Math.random()*activeTables.length)];
+
+        const b =
+        activeTables[Math.floor(Math.random()*activeTables.length)];
+
+        answer = a*b;
+
+        currentQuestion = `${a} × ${b} = `;
+
+        question.textContent =
+            currentQuestion + "?";
+
+        startCountdown();
+
+    },3000);
+}
+
+document
+.getElementById("nextBtn")
+.addEventListener("click",generateQuestion);
+
+document
+.getElementById("showAnswerBtn")
+.addEventListener("click",showAnswer);
+
+function makeDraggable(element){
+
+    let pos1=0,pos2=0,pos3=0,pos4=0;
+
+    element.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e){
+
+        e.preventDefault();
+
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+
+        document.onmouseup = stopDrag;
+        document.onmousemove = drag;
+    }
+
+    function drag(e){
+
+        e.preventDefault();
+
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+
+        element.style.top =
+            (element.offsetTop - pos2) + "px";
+
+        element.style.left =
+            (element.offsetLeft - pos1) + "px";
+
+        element.style.right = "auto";
+        element.style.transform = "none";
+    }
+
+    function stopDrag(){
+
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+}
+
+makeDraggable(document.getElementById("teamA"));
+makeDraggable(document.getElementById("teamB"));
+
+</script>
+
+</body>
+</html>

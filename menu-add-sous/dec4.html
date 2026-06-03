@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-y: auto;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    .container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 3vw;
+    }
+
+    /* CHAQUE LIGNE = problème + réponse */
+    .line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      width: 100%;
+      font-size: 6vw;
+      margin: 1.5vh 0;
+      word-break: break-word;
+    }
+
+    .answer {
+      font-size: 6vw;
+      color: green;
+      min-width: 120px;
+      text-align: right;
+      display: none;
+    }
+
+    .buttons {
+      margin-top: 2vh;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background-color: #007BFF;
+      color: white;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 600px) {
+      .line {
+        font-size: 8vw;
+      }
+
+      .answer {
+        font-size: 8vw;
+      }
+
+      button {
+        font-size: 13px;
+        padding: 7px 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="line">
+      <span id="add1"></span>
+      <span class="answer" id="add1Answer"></span>
+    </div>
+
+    <div class="line">
+      <span id="add2"></span>
+      <span class="answer" id="add2Answer"></span>
+    </div>
+
+    <div class="line">
+      <span id="sub1"></span>
+      <span class="answer" id="sub1Answer"></span>
+    </div>
+
+    <div class="line">
+      <span id="sub2"></span>
+      <span class="answer" id="sub2Answer"></span>
+    </div>
+
+    <div class="buttons">
+
+      <button onclick="generateProblems()">
+        Nouveaux calculs
+      </button>
+
+      <button onclick="toggleAnswers()" id="toggleBtn">
+        Afficher les réponses
+      </button>
+
+      <button onclick="goBack()">
+        Retour
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+    let results = {};
+
+    function randomDecimal() {
+      let num = Math.random() * (9999.99 - 100.01) + 100.01;
+      return Math.round(num * 100) / 100;
+    }
+
+    function formatFR(n) {
+      let str = n.toFixed(2);
+
+      if (str.endsWith("0")) {
+        str = str.slice(0, -1);
+      }
+
+      if (str.endsWith(".0")) {
+        str = str.slice(0, -2);
+      }
+
+      return str.replace('.', ',');
+    }
+
+    function generateProblems() {
+
+      let a = randomDecimal();
+      let b = randomDecimal();
+
+      let c = randomDecimal();
+      let d = randomDecimal();
+
+      let e = randomDecimal();
+      let f = randomDecimal();
+
+      let g = randomDecimal();
+      let h = randomDecimal();
+
+      if (e < f) [e, f] = [f, e];
+      if (g < h) [g, h] = [h, g];
+
+      results = {
+        add1: a + b,
+        add2: c + d,
+        sub1: e - f,
+        sub2: g - h
+      };
+
+      document.getElementById("add1").textContent =
+        `${formatFR(a)} + ${formatFR(b)} =`;
+
+      document.getElementById("add2").textContent =
+        `${formatFR(c)} + ${formatFR(d)} =`;
+
+      document.getElementById("sub1").textContent =
+        `${formatFR(e)} - ${formatFR(f)} =`;
+
+      document.getElementById("sub2").textContent =
+        `${formatFR(g)} - ${formatFR(h)} =`;
+
+      document.getElementById("add1Answer").textContent =
+        formatFR(results.add1);
+
+      document.getElementById("add2Answer").textContent =
+        formatFR(results.add2);
+
+      document.getElementById("sub1Answer").textContent =
+        formatFR(results.sub1);
+
+      document.getElementById("sub2Answer").textContent =
+        formatFR(results.sub2);
+
+      document.querySelectorAll(".answer").forEach(el => {
+        el.style.display = "none";
+      });
+
+      document.getElementById("toggleBtn").textContent =
+        "Afficher les réponses";
+    }
+
+    function toggleAnswers() {
+
+      let answers = document.querySelectorAll(".answer");
+      let button = document.getElementById("toggleBtn");
+
+      let isVisible = answers[0].style.display === "block";
+
+      answers.forEach(el => {
+        el.style.display = isVisible ? "none" : "block";
+      });
+
+      button.textContent = isVisible
+        ? "Afficher les réponses"
+        : "Cacher les réponses";
+    }
+
+    function goBack() {
+      window.location.href = "menu-add-sous.html";
+    }
+
+    generateProblems();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Refresh</title>
+
+<style>
+body{
+    font-family: Arial;
+    max-width: 520px;
+    margin: 40px auto;
+    padding: 20px;
+    background:#f5f5f5;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    box-sizing:border-box;
+}
+
+.row{
+    display:flex;
+    gap:10px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.start{ background:#28a745; color:white; }
+.stop{ background:#dc3545; color:white; }
+
+#timer{
+    margin-top:15px;
+    font-size:26px;
+    font-weight:bold;
+    text-align:center;
+    color:#007bff;
+}
+
+#status{
+    text-align:center;
+    margin-top:8px;
+    color:#555;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Auto Refresh</h2>
+
+<label>URL</label>
+<input id="url" placeholder="https://example.com">
+
+<label>Intervalle</label>
+<div class="row">
+    <input id="minutes" type="number" min="0" value="0" placeholder="min">
+    <input id="seconds" type="number" min="0" max="59" value="30" placeholder="sec">
+</div>
+
+<button class="start" onclick="start()">START</button>
+<button class="stop" onclick="stop()">STOP</button>
+
+<div id="timer">--:--</div>
+<div id="status">Arrêté</div>
+
+</div>
+
+<script>
+
+let win = null;
+let refreshTimer = null;
+let countdownTimer = null;
+
+let base = 0;
+let remaining = 0;
+
+function format(s){
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    return String(m).padStart(2,'0') + ":" + String(sec).padStart(2,'0');
+}
+
+function start(){
+
+    const url = document.getElementById("url").value.trim();
+    const m = parseInt(document.getElementById("minutes").value) || 0;
+    const s = parseInt(document.getElementById("seconds").value) || 0;
+
+    base = (m * 60) + s;
+
+    if(!url) return alert("URL requise");
+    if(base <= 0) return alert("Intervalle invalide");
+
+    stop();
+
+    // popup plus "clean"
+    win = window.open(
+        url,
+        "monitor",
+        "popup=yes,width=1200,height=800,left=200,top=100,resizable=yes,scrollbars=yes"
+    );
+
+    document.getElementById("status").textContent = "En cours";
+
+    remaining = base;
+    document.getElementById("timer").textContent = format(remaining);
+
+    // countdown
+    countdownTimer = setInterval(() => {
+        remaining--;
+        if(remaining <= 0) remaining = base;
+        document.getElementById("timer").textContent = format(remaining);
+    }, 1000);
+
+    // refresh
+    refreshTimer = setInterval(() => {
+
+        if(!win || win.closed){
+            stop();
+            return;
+        }
+
+        try{
+            win.location.reload();
+        } catch(e){
+            win.location.href = url;
+        }
+
+    }, base * 1000);
+}
+
+function stop(){
+
+    if(refreshTimer){
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+    }
+
+    if(countdownTimer){
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+    }
+
+    if(win && !win.closed){
+        try{ win.close(); } catch(e){}
+    }
+
+    win = null;
+
+    document.getElementById("timer").textContent = "--:--";
+    document.getElementById("status").textContent = "Arrêté";
+}
+
+</script>
+
+</body>
+</html>
