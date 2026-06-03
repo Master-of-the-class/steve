@@ -101,8 +101,29 @@
       <p>Accéder à l’outil</p>
     </a>
 
+    <a class="card" href="#" onclick="verifierAcces()">
+  <h2>Qui est le coupable?</h2>
+  <p>Accéder à l’outil</p>
+</a>
+
 
   </div>
+
+  <script>
+  const PASSWORD = "302";
+
+  function verifierAcces() {
+
+    const pass = prompt("Entrez le mot de passe :");
+
+    if (pass === PASSWORD) {
+      window.location.href = "qui-est-le-coupable/qui-est-le-coupable.html";
+    } else if (pass !== null) {
+      alert("Mot de passe incorrect");
+    }
+
+  }
+</script>
 
   <footer>
     © 2026 - Mes outils personnels
