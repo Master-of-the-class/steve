@@ -138,6 +138,44 @@ body { font-family: Arial; text-align: center; }
 </div>
 
 <script>
+  const HASH = "f32828acecb4282c87eaa554d2e1db74e418cd6845843012463a3324028bdd9d";
+
+  async function verifierPage() {
+
+    let ok = sessionStorage.getItem("accesOK");
+
+    if (ok === "true") return;
+
+    const pass = prompt("Mot de passe requis");
+
+    if (pass === null) {
+      window.location.href = "../index.html";
+      return;
+    }
+
+    const hash = await sha256(pass);
+
+    if (hash === HASH) {
+      sessionStorage.setItem("accesOK", "true");
+    } else {
+      alert("Accès refusé");
+      window.location.href = "../index.html";
+    }
+  }
+
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(str)
+    );
+
+    return Array.from(new Uint8Array(buf))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  verifierPage();
+
 
 const suspects = ["Green","Mustard","Peacock","Plum","Scarlet","White"];
 const armes = ["Couteau","Chandelier","Pistolet","Corde","Clé à molette","Tuyau"];
