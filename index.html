@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Les applications de M. Steve</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2c2c54);
+      color: white;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    header p {
+      opacity: 0.8;
+      margin-top: 10px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 30px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      transition: 0.3s ease;
+      text-decoration: none;
+      color: white;
+      display: block;
+      backdrop-filter: blur(8px);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      opacity: 0.6;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Les applications de M. Steve</h1>
+    <p>Accès rapide à mes applications</p>
+  </header>
+
+  <div class="container">
+
+    <!-- EXEMPLE DE BOUTON -->
+    <a class="card" href="tables-multiplications/tables-multiplications.html">
+      <h2>Tables de multiplication</h2>
+      <p>Accéder à l’application</p>
+    </a>
+
+
+    <a class="card" href="autorefresh/autorefresh.html">
+      <h2>Rafraîchissement automatique d'une page</h2>
+      <p>Accéder à l’application</p>
+    </a>
+
+    <a class="card" href="menu-add-sous/menu-add-sous.html">
+      <h2>Additions et soustrations aléatoires</h2>
+      <p>Accéder à l’application</p>
+    </a>
+
+    <a class="card" href="#" onclick="verifierAcces()">
+  <h2>Qui est le coupable?</h2>
+  <p>Accéder à l’application</p>
+</a>
+
+
+  </div>
+
+  <script>
+<script>
+  const HASH = "f32828acecb4282c87eaa554d2e1db74e418cd6845843012463a3324028bdd9d";
+
+  async function verifierAcces() {
+
+    const pass = prompt("Entrez le mot de passe :");
+
+    if (pass === null) return;
+
+    const hash = await sha256(pass);
+
+    if (hash === HASH) {
+      window.location.href = "qui-est-le-coupable.html";
+    } else {
+      alert("Mot de passe incorrect");
+    }
+  }
+
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(str)
+    );
+
+    return Array.from(new Uint8Array(buf))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+</script>
+  </script>
+
+  <footer>
+    © 2026 - Les applications personnelles de M. Steve
+  </footer>
+
+</body>
+</html>
