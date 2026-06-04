@@ -38,6 +38,7 @@ button{
 /* Student Card */
 .card{
     background:white;
+	min-height:220px;
     border-radius:10px;
     box-shadow:0 0 5px rgba(0,0,0,0.2);
     text-align:center;
@@ -65,7 +66,18 @@ button{
 }
 
 .stats{
-    font-size:clamp(10px,1vw,16px);
+    font-size:clamp(10px,1vw,14px);
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    line-height:1.2;
+}
+
+.stats span{
+    display:flex;
+    gap:2px;
+    align-items:center;
+    flex-wrap:nowrap;
 }
 
 /* Popup + Settings */
@@ -96,12 +108,19 @@ button{
     left:0;
 }
 .miniBtn{
-    padding:1px 5px;
-    font-size:12px;
-    margin-left:2px;
+    padding:0px 6px;
+    font-size:11px;
+    line-height:1;
+    height:18px;
+    min-width:18px;
 }
 
-	
+.statRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:6px;
+}	
 	
 #levelBanner{
     position:fixed;
@@ -322,7 +341,7 @@ function updateGrid(){
     const container = document.getElementById("students");
 
     container.style.gridTemplateColumns =
-        "repeat(auto-fit, minmax(120px, 1fr))";
+    "repeat(auto-fit, minmax(160px, 1fr))";
 
     container.style.gridAutoRows = "160px";
 }
@@ -349,30 +368,35 @@ function render(){
             </div>
 
            <div class="stats">
-			❤️ ${s.hearts}/10
-<span>
-<button class="miniBtn"
-onclick="event.stopPropagation(); quickHeart(${i},1)">+</button>
-<button class="miniBtn"
-onclick="event.stopPropagation(); quickHeart(${i},-1)">-</button>
-</span>
-<br>
-			🪙 ${s.gold}
-<span>
-<button class="miniBtn"
-onclick="event.stopPropagation(); quickGold(${i},1)">+</button>
-<button class="miniBtn"
-onclick="event.stopPropagation(); quickGold(${i},-1)">-</button>
-</span>
-<br>
+<div class="statRow">
+    <div>❤️ ${s.hearts}/10</div>
+
+    <div class="btnRow">
+        <button class="miniBtn" onclick="event.stopPropagation(); quickHeart(${i},1)">+</button>
+        <button class="miniBtn" onclick="event.stopPropagation(); quickHeart(${i},-1)">-</button>
+    </div>
+</div>
+
+			
+<div class="statRow">
+    <div>🪙 ${s.gold}/10</div>
+
+    <div class="btnRow">
+        <button class="miniBtn" onclick="event.stopPropagation(); quickGold(${i},1)">+</button>
+        <button class="miniBtn" onclick="event.stopPropagation(); quickGold(${i},-1)">-</button>
+    </div>
+</div>
+
 			🔮 ${s.mana}/5
-<span>
-<button class="miniBtn"
-onclick="event.stopPropagation(); quickMana(${i},1)">+</button>
-<button class="miniBtn"
-onclick="event.stopPropagation(); quickMana(${i},-1)">-</button>
-</span>
-<br>
+<div class="statRow">
+    <div>🔮 ${s.mana}/10</div>
+
+    <div class="btnRow">
+        <button class="miniBtn" onclick="event.stopPropagation(); quickMana(${i},1)">+</button>
+        <button class="miniBtn" onclick="event.stopPropagation(); quickMana(${i},-1)">-</button>
+    </div>
+</div>
+
 			⭐
 			<button onclick="event.stopPropagation(); quickXP(${i},150)">+150 XP</button>
 			</div>
