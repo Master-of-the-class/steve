@@ -95,6 +95,21 @@ button:hover{transform: scale(1.1);}
     #bossImage{width:180px;height:180px;}
     button{font-size:14px;padding:8px 16px;}
 }
+    @keyframes shake {
+    0% { transform: translate(0px, 0px); }
+    20% { transform: translate(-5px, 3px); }
+    40% { transform: translate(5px, -3px); }
+    60% { transform: translate(-5px, 2px); }
+    80% { transform: translate(5px, -2px); }
+    100% { transform: translate(0px, 0px); }
+}
+
+.shake {
+    animation: shake 0.3s;
+}
+    .hit {
+    filter: brightness(2) saturate(2) hue-rotate(-20deg);
+}
 </style>
 </head>
 
@@ -165,7 +180,15 @@ let wrongCount = 0;
 let currentStudent = null;
 let fightEnded = false;
 
+function shakeBoss(){
+    const bossImg = document.getElementById("bossImage");
 
+    bossImg.classList.add("shake", "hit");
+
+    setTimeout(()=>{
+        bossImg.classList.remove("shake", "hit");
+    }, 300);
+}
 
 function startFight(){
 
@@ -295,6 +318,7 @@ function goodAnswer(){
     if(fightEnded) return;
 
     boss.hearts--;
+    shakeBoss(); 
     updateBoss();
 
     if(boss.hearts <= 0){
