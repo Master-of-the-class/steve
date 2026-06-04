@@ -149,19 +149,60 @@ button:hover{transform: scale(1.1);}
 
 <!-- MANA SHOP -->
 <div id="manaShop">
-    <h3>🧙 Pouvoirs</h3>
-
-    <button onclick="buySpell('fire',1)">🔥 Fireball (1)</button><br>
-    <button onclick="buySpell('ice',2)">❄ Ice (2)</button><br>
-    <button onclick="buySpell('storm',3)">⚡ Storm (3)</button><br>
-    <button onclick="buySpell('heal',4)">💚 Heal Boss (4)</button><br>
-    <button onclick="buySpell('ultra',5)">💥 Ultra (5)</button><br><br>
-
+    <h3>🧙 Sorts</h3>
+    <div id="spellContainer"></div>
     <button onclick="closeManaShop()">Fermer</button>
 </div>
 
 <script>
+let spells = JSON.parse(localStorage.getItem(className+"_spells")) || [];
 
+function openManaShop(){
+    document.getElementById("manaShop").style.display="block";
+    renderSpellsShop();
+}
+
+function renderSpellsShop(){
+
+    let div = document.getElementById("spellContainer");
+    div.innerHTML = "";
+
+    spells.forEach((s,i)=>{
+
+        let btn = document.createElement("button");
+
+        btn.innerText = `${s.name} (${s.cost})`;
+
+        btn.onclick = () => useSpell(s);
+
+        div.appendChild(btn);
+        div.appendChild(document.createElement("br"));
+    });
+}
+
+function useSpell(spell){
+
+    if(!currentStudent) return;
+
+    if((currentStudent.mana||0) < spell.cost){
+        alert("Pas assez de mana !");
+        return;
+    }
+
+    currentStudent.mana -= spell.cost;
+
+    boss.hearts -= spell.damage;
+
+    if(boss.hearts < 0) boss.hearts = 0;
+
+    updateBoss();
+    updatePopup();
+    closeManaShop();
+
+    if(boss.hearts === 0){
+        victory();
+    }
+}
 let boss={hearts:3,xp:150,gold:5,mana:0,escape:3};
 let wrongCount=0;
 
