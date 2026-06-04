@@ -49,7 +49,7 @@ button:hover{transform: scale(1.1);}
     display:none;
 }
 
-/* 🔥 POPUP ELEVE */
+
 #studentPopup{
     display:none;
     position:fixed;
@@ -72,7 +72,7 @@ button:hover{transform: scale(1.1);}
     border-radius:10px;
 }
 
-/* 🔮 SHOP MANA */
+
 #manaShop{
     display:none;
     position:fixed;
@@ -102,7 +102,6 @@ button:hover{transform: scale(1.1);}
 
 <h1>Combat du Boss</h1>
 
-<!-- SETUP -->
 <div id="setupDiv">
 <h2>Préparez le Boss</h2>
 
@@ -115,7 +114,7 @@ button:hover{transform: scale(1.1);}
 <button onclick="startFight()">Commencer le combat</button>
 </div>
 
-<!-- FIGHT -->
+
 <div id="fightDiv" style="display:none;">
 
 <div id="heartsContainer"></div>
@@ -136,7 +135,7 @@ button:hover{transform: scale(1.1);}
 
 <div id="thinkingIcon">💭</div>
 
-<!-- POPUP ELEVE -->
+
 <div id="studentPopup">
     <img id="popupImg">
     <h3 id="popupName"></h3>
@@ -147,7 +146,7 @@ button:hover{transform: scale(1.1);}
     <button onclick="closePopup()">Fermer</button>
 </div>
 
-<!-- MANA SHOP -->
+
 <div id="manaShop">
     <h3>🧙 Sorts</h3>
     <div id="spellContainer"></div>
@@ -155,26 +154,113 @@ button:hover{transform: scale(1.1);}
 </div>
 
 <script>
-let spells = JSON.parse(localStorage.getItem(className+"_spells")) || [];
+let params = new URLSearchParams(window.location.search);
+let className = params.get("name") || "Classe";
+
+let students = JSON.parse(localStorage.getItem("class_" + className)) || [];
+let spells = JSON.parse(localStorage.getItem(className + "_spells")) || [];
+
+let boss = {hearts:3,xp:150,gold:5,mana:0,escape:3};
+let wrongCount = 0;
+let currentStudent = null;
+let fightEnded = false;
+
+
+
+function startFight(){
+
+    let randomIndex = Math.floor(Math.random()*20)+1;
+    document.getElementById("bossImage").src = "boss"+randomIndex+".png";
+
+    boss.hearts = parseInt(bossHearts.value)||3;
+    boss.xp = parseInt(bossXP.value)||150;
+    boss.gold = parseInt(bossGold.value)||5;
+    boss.mana = parseInt(bossMana.value)||0;
+    boss.escape = parseInt(bossEscape.value)||3;
+
+    wrongCount = 0;
+    fightEnded = false;
+
+    document.getElementById("setupDiv").style.display="none";
+    document.getElementById("fightDiv").style.display="block";
+
+    updateBoss();
+}
+
+
+
+function updateBoss(){
+    let c = document.getElementById("heartsContainer");
+    c.innerHTML = "";
+    for(let i=0;i<boss.hearts;i++) c.innerHTML += "❤️";
+}
+
+
+
+function showRandomStudent(){
+
+    if(fightEnded) return;
+
+    let alive = students.filter(s => (s.hearts||0) > 0);
+    if(alive.length === 0){
+        alert("Aucun élève vivant !");
+        return;
+    }
+
+    let s = alive[Math.floor(Math.random()*alive.length)];
+    currentStudent = s;
+
+    let index = students.indexOf(s);
+
+    popupImg.src = "student"+(index+1)+".png";
+    popupName.innerText = s.name;
+
+    updatePopup();
+    studentPopup.style.display="block";
+}
+
+function updatePopup(){
+    if(!currentStudent) return;
+
+    popupStats.innerHTML =
+        "❤️ "+(currentStudent.hearts||0)+"/10<br>"+
+        "🪙 "+(currentStudent.gold||0)+"<br>"+
+        "🔮 "+(currentStudent.mana||0)+"<br>"+
+        "⭐ XP "+(currentStudent.xp||0);
+}
+
+function closePopup(){
+    studentPopup.style.display="none";
+}
+
+
+
+function changeMana(v){
+    if(!currentStudent) return;
+    currentStudent.mana = Math.max(0,(currentStudent.mana||0)+v);
+    updatePopup();
+}
+
+
 
 function openManaShop(){
-    document.getElementById("manaShop").style.display="block";
+    manaShop.style.display="block";
     renderSpellsShop();
+}
+
+function closeManaShop(){
+    manaShop.style.display="none";
 }
 
 function renderSpellsShop(){
 
-    let div = document.getElementById("spellContainer");
+    let div = spellContainer;
     div.innerHTML = "";
 
-    spells.forEach((s,i)=>{
-
+    spells.forEach(spell=>{
         let btn = document.createElement("button");
-
-        btn.innerText = `${s.name} (${s.cost})`;
-
-        btn.onclick = () => useSpell(s);
-
+        btn.innerText = `${spell.name} (${spell.cost})`;
+        btn.onclick = () => useSpell(spell);
         div.appendChild(btn);
         div.appendChild(document.createElement("br"));
     });
@@ -182,7 +268,7 @@ function renderSpellsShop(){
 
 function useSpell(spell){
 
-    if(!currentStudent) return;
+    if(!currentStudent || fightEnded) return;
 
     if((currentStudent.mana||0) < spell.cost){
         alert("Pas assez de mana !");
@@ -190,7 +276,6 @@ function useSpell(spell){
     }
 
     currentStudent.mana -= spell.cost;
-
     boss.hearts -= spell.damage;
 
     if(boss.hearts < 0) boss.hearts = 0;
@@ -203,156 +288,48 @@ function useSpell(spell){
         victory();
     }
 }
-let boss={hearts:3,xp:150,gold:5,mana:0,escape:3};
-let wrongCount=0;
 
-let params=new URLSearchParams(window.location.search);
-let className=params.get("name")||"Classe";
 
-let students=JSON.parse(localStorage.getItem("class_"+className))||[];
 
-let currentStudent = null;
+function goodAnswer(){
+    if(fightEnded) return;
 
-/* ================= BOSSE ================= */
-
-function startFight(){
-    let randomIndex=Math.floor(Math.random()*20)+1;
-    document.getElementById("bossImage").src="boss"+randomIndex+".png";
-
-    boss.hearts=parseInt(bossHearts.value)||3;
-    boss.xp=parseInt(bossXP.value)||150;
-    boss.gold=parseInt(bossGold.value)||5;
-    boss.mana=parseInt(bossMana.value)||0;
-    boss.escape=parseInt(bossEscape.value)||3;
-
-    document.getElementById("setupDiv").style.display="none";
-    document.getElementById("fightDiv").style.display="block";
-
+    boss.hearts--;
     updateBoss();
-}
 
-function updateBoss(){
-    let c=document.getElementById("heartsContainer");
-    c.innerHTML="";
-    for(let i=0;i<boss.hearts;i++) c.innerHTML+="❤️";
-}
-
-/* ================= ELEVE RANDOM ================= */
-
-function showRandomStudent(){
-
-    let alive = students.filter(s => (s.hearts || 0) > 0);
-
-    if(alive.length === 0){
-        alert("Aucun élève vivant !");
-        return;
-    }
-
-    let s = alive[Math.floor(Math.random()*alive.length)];
-    currentStudent = s;
-
-    let index = students.indexOf(s);
-
-    document.getElementById("popupImg").src = "student"+(index+1)+".png";
-    document.getElementById("popupName").innerText = s.name;
-
-    updatePopup();
-
-    document.getElementById("studentPopup").style.display="block";
-}
-
-function updatePopup(){
-    if(!currentStudent) return;
-
-    document.getElementById("popupStats").innerHTML =
-        "❤️ "+(currentStudent.hearts||0)+"/10<br>"+
-        "🪙 "+(currentStudent.gold||0)+"<br>"+
-        "🔮 "+(currentStudent.mana||0)+"<br>"+
-        "⭐ XP "+(currentStudent.xp||0);
-}
-
-function closePopup(){
-    document.getElementById("studentPopup").style.display="none";
-}
-
-/* ================= MANA ================= */
-
-function changeMana(v){
-    if(!currentStudent) return;
-    currentStudent.mana = Math.max(0,(currentStudent.mana||0)+v);
-    updatePopup();
-}
-
-function openManaShop(){
-    document.getElementById("manaShop").style.display="block";
-}
-
-function closeManaShop(){
-    document.getElementById("manaShop").style.display="none";
-}
-
-/* ================= SORTS ================= */
-
-function buySpell(type,cost){
-
-    if(!currentStudent) return;
-
-    if((currentStudent.mana||0) < cost){
-        alert("Pas assez de mana !");
-        return;
-    }
-
-    currentStudent.mana -= cost;
-
-    if(type === "fire") boss.hearts -= 1;
-    if(type === "ice") boss.hearts -= 2;
-    if(type === "storm") boss.hearts -= 3;
-    if(type === "heal") boss.hearts += 1;
-    if(type === "ultra") boss.hearts = 0;
-
-    if(boss.hearts < 0) boss.hearts = 0;
-
-    updateBoss();
-    updatePopup();
-    closeManaShop();
-
-    if(boss.hearts === 0){
+    if(boss.hearts <= 0){
         victory();
     }
 }
 
-/* ================= COMBAT ================= */
-
-function goodAnswer(){
-    boss.hearts--;
-    updateBoss();
-    if(boss.hearts<=0) victory();
-}
-
 function wrongAnswer(){
+    if(fightEnded) return;
+
     wrongCount++;
-    if(wrongCount>=boss.escape){
-        alert("Boss fuite !");
+    if(wrongCount >= boss.escape){
+        alert("Le boss s'est enfui !");
+        endFight();
     }
 }
 
-/* ================= VICTOIRE ================= */
 
-function addXP(s, amount){
-
-    s.xp = (s.xp||0) + amount;
-
-    if(!s.level) s.level = 1;
-
-    while(s.xp >= 1000){
-        s.xp -= 1000;
-        s.level++;
-    }
-}
 
 function victory(){
 
-    let alive = students.filter(s => (s.hearts || 0) > 0);
+    fightEnded = true;
+
+    let btn = document.createElement("button");
+    btn.innerText = "🎁 Récupérer les récompenses";
+    btn.onclick = claimRewards;
+
+    statusContainer.innerHTML = "🏆 Boss vaincu !";
+    statusContainer.appendChild(document.createElement("br"));
+    statusContainer.appendChild(btn);
+}
+
+function claimRewards(){
+
+    let alive = students.filter(s => (s.hearts||0) > 0);
 
     alive.forEach(s=>{
         s.gold = (s.gold||0) + boss.gold;
@@ -362,9 +339,25 @@ function victory(){
 
     localStorage.setItem("class_"+className, JSON.stringify(students));
 
-    alert("Boss vaincu !");
+    alert("Récompenses distribuées !");
+    endFight();
 }
 
+function endFight(){
+    fightEnded = true;
+}
+
+
+function addXP(s, amount){
+
+    s.xp = (s.xp||0) + amount;
+    if(!s.level) s.level = 1;
+
+    while(s.xp >= 1000){
+        s.xp -= 1000;
+        s.level++;
+    }
+}
 </script>
 
 </body>
