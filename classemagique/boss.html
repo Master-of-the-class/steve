@@ -390,7 +390,10 @@ function claimRewards(){
 
     localStorage.setItem("class_"+className, JSON.stringify(students));
 
+    alert("Récompenses distribuées !");
+
    
+    window.location.href = "classemagique/class.html?name=" + className;
 }
 
 function endFight(){
