@@ -31,8 +31,8 @@ button{
     display:grid;
     gap:10px;
     padding:10px;
-    min-height:calc(100vh - 60px);
-    box-sizing:border-box;
+    height:calc(100vh - 60px);
+    overflow-y:auto;
 }
 
 /* Student Card */
@@ -59,7 +59,7 @@ button{
 
 .card img{
     width:100%;
-    height:65%;
+    height:90px;
     object-fit:cover;
     border-radius:8px;
 }
@@ -81,6 +81,9 @@ button{
     box-shadow:0 0 15px black;
     z-index:1000;
     width:300px;
+
+    max-height:85vh;
+    overflow-y:auto;
 }
 
 .overlay{
@@ -98,6 +101,8 @@ button{
     margin-left:2px;
 }
 
+	
+	
 #levelBanner{
     position:fixed;
     top:40%;
@@ -315,17 +320,12 @@ function saveData(){
 /* ==================== GRID ==================== */
 function updateGrid(){
     const container = document.getElementById("students");
-    const count = students.length;
-    if(count === 0) return;
 
-    const aspectRatio = window.innerWidth / window.innerHeight;
-    const cols = Math.ceil(Math.sqrt(count * aspectRatio));
-    const rows = Math.ceil(count / cols);
+    container.style.gridTemplateColumns =
+        "repeat(auto-fit, minmax(120px, 1fr))";
 
-    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    container.style.gridAutoRows = "160px";
 }
-window.addEventListener("resize", updateGrid);
 
 /* ==================== RENDER ==================== */
 function render(){
