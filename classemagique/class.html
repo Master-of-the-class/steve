@@ -188,6 +188,7 @@ button{
 	<br><br>
 	<button onclick="resetPicked()">Réinitialiser les élèves choisis</button>
 	<br><br>
+	<button onclick="openSpellEditor()">🧙 Configurer les sorts</button>
     <button onclick="closeAll()">Fermer</button>
 	<br><br>
 	<button onclick="exportClass()">💾 Exporter la classe</button><br><br>
@@ -222,6 +223,15 @@ button{
     <button onclick="closeAll()">Fermer</button>
 </div>
 
+	<div class="popup" id="spellEditor">
+    <h3>🧙 Sorts du Boss</h3>
+
+    <div id="spellList"></div>
+
+    <button onclick="addSpell()">➕ Ajouter un sort</button><br><br>
+    <button onclick="saveSpells()">💾 Sauvegarder</button>
+    <button onclick="closeSpellEditor()">Fermer</button>
+</div>
 
 <script>
 /* ==================== INITIAL SETUP ==================== */
@@ -233,7 +243,51 @@ let students = JSON.parse(localStorage.getItem("class_"+className)) || [];
 let current = null;
 let muted = localStorage.getItem("muted")==="true";
 let pickedStudents = [];
+let spells = JSON.parse(localStorage.getItem(className+"_spells")) || [
+    {name:"Fireball", cost:1, damage:1},
+    {name:"Ice", cost:2, damage:2}
+];
 
+function openSpellEditor(){
+    renderSpells();
+    document.getElementById("overlay").style.display="block";
+    document.getElementById("spellEditor").style.display="block";
+}
+
+function closeSpellEditor(){
+    document.getElementById("spellEditor").style.display="none";
+}
+
+function renderSpells(){
+    const div = document.getElementById("spellList");
+    div.innerHTML = "";
+
+    spells.forEach((s,i)=>{
+        div.innerHTML += `
+        <div style="margin-bottom:10px;">
+            Nom: <input value="${s.name}" onchange="spells[${i}].name=this.value"><br>
+            Mana: <input type="number" value="${s.cost}" onchange="spells[${i}].cost=parseInt(this.value)"><br>
+            Dégâts: <input type="number" value="${s.damage}" onchange="spells[${i}].damage=parseInt(this.value)">
+            <button onclick="removeSpell(${i})">❌</button>
+        </div>
+        `;
+    });
+}
+
+function addSpell(){
+    spells.push({name:"Nouveau", cost:1, damage:1});
+    renderSpells();
+}
+
+function removeSpell(i){
+    spells.splice(i,1);
+    renderSpells();
+}
+
+function saveSpells(){
+    localStorage.setItem(className+"_spells", JSON.stringify(spells));
+    alert("Sorts sauvegardés !");
+}
 /* Ensure new properties exist */
 students.forEach((s,i)=>{
     if(s.hearts === undefined) s.hearts = 10;
