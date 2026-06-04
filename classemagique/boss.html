@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Combat du Boss</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#222;
+    color:white;
+    text-align:center;
+    overflow:hidden;
+    margin:0;
+}
+
+h1,h2 {margin:5px 0;}
+
+#bossImage{
+    width:250px;
+    height:250px;
+    object-fit:cover;
+    border:3px solid gold;
+    border-radius:15px;
+    margin:20px auto;
+    display:block;
+    transition: filter 0.5s, transform 0.2s, box-shadow 0.2s;
+}
+
+button{
+    padding:10px 20px;
+    margin:10px;
+    cursor:pointer;
+    border-radius:5px;
+    border:none;
+    font-size:16px;
+    transition: transform 0.2s, background 0.2s;
+}
+button:hover{transform: scale(1.1);}
+
+#heartsContainer{font-size:40px;margin:10px 0;}
+#statusContainer{font-size:22px;margin-bottom:15px;}
+
+#thinkingIcon{
+    position:fixed;
+    top:10px;
+    right:10px;
+    font-size:30px;
+    display:none;
+}
+
+/* 🔥 POPUP ELEVE */
+#studentPopup{
+    display:none;
+    position:fixed;
+    top:78%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#111;
+    padding:20px;
+    border-radius:15px;
+    border:2px solid gold;
+    z-index:5000;
+    width:260px;
+    box-shadow:0 0 20px black;
+}
+
+#studentPopup img{
+    width:160px;
+    height:160px;
+    object-fit:cover;
+    border-radius:10px;
+}
+
+/* 🔮 SHOP MANA */
+#manaShop{
+    display:none;
+    position:fixed;
+    top:60%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:#000;
+    padding:20px;
+    border-radius:15px;
+    border:2px solid cyan;
+    z-index:6000;
+    width:280px;
+}
+
+#fightDiv{
+    padding-bottom:320px;
+}
+
+@media(max-width:500px){
+    #bossImage{width:180px;height:180px;}
+    button{font-size:14px;padding:8px 16px;}
+}
+</style>
+</head>
+
+<body>
+
+<h1>Combat du Boss</h1>
+
+<!-- SETUP -->
+<div id="setupDiv">
+<h2>Préparez le Boss</h2>
+
+<label>❤️ Vies: <input type="number" id="bossHearts" value="3"></label><br><br>
+<label>XP Récompense: <input type="number" id="bossXP" value="150"></label><br><br>
+<label>💰 Or Récompense: <input type="number" id="bossGold" value="5"></label><br><br>
+<label>🔮 Mana Récompense: <input type="number" id="bossMana" value="0"></label><br><br>
+<label>Fails avant fuite: <input type="number" id="bossEscape" value="3"></label><br><br>
+
+<button onclick="startFight()">Commencer le combat</button>
+</div>
+
+<!-- FIGHT -->
+<div id="fightDiv" style="display:none;">
+
+<div id="heartsContainer"></div>
+<div id="statusContainer"></div>
+
+<img id="bossImage" src="">
+
+<div>
+<button id="goodBtn" onclick="goodAnswer()">Bonne réponse ✅</button>
+<button id="wrongBtn" onclick="wrongAnswer()">Mauvaise réponse ❌</button>
+
+<br>
+
+<button onclick="showRandomStudent()">🎲 Élève au hasard</button>
+</div>
+
+</div>
+
+<div id="thinkingIcon">💭</div>
+
+<!-- POPUP ELEVE -->
+<div id="studentPopup">
+    <img id="popupImg">
+    <h3 id="popupName"></h3>
+    <div id="popupStats"></div>
+
+    <button onclick="openManaShop()">🔮 Utiliser du mana</button>
+    <button onclick="changeMana(-1)">➖ Mana -1</button>
+    <button onclick="closePopup()">Fermer</button>
+</div>
+
+<!-- MANA SHOP -->
+<div id="manaShop">
+    <h3>🧙 Pouvoirs</h3>
+
+    <button onclick="buySpell('fire',1)">🔥 Fireball (1)</button><br>
+    <button onclick="buySpell('ice',2)">❄ Ice (2)</button><br>
+    <button onclick="buySpell('storm',3)">⚡ Storm (3)</button><br>
+    <button onclick="buySpell('heal',4)">💚 Heal Boss (4)</button><br>
+    <button onclick="buySpell('ultra',5)">💥 Ultra (5)</button><br><br>
+
+    <button onclick="closeManaShop()">Fermer</button>
+</div>
+
+<script>
+
+let boss={hearts:3,xp:150,gold:5,mana:0,escape:3};
+let wrongCount=0;
+
+let params=new URLSearchParams(window.location.search);
+let className=params.get("name")||"Classe";
+
+let students=JSON.parse(localStorage.getItem("class_"+className))||[];
+
+let currentStudent = null;
+
+/* ================= BOSSE ================= */
+
+function startFight(){
+    let randomIndex=Math.floor(Math.random()*20)+1;
+    document.getElementById("bossImage").src="boss"+randomIndex+".png";
+
+    boss.hearts=parseInt(bossHearts.value)||3;
+    boss.xp=parseInt(bossXP.value)||150;
+    boss.gold=parseInt(bossGold.value)||5;
+    boss.mana=parseInt(bossMana.value)||0;
+    boss.escape=parseInt(bossEscape.value)||3;
+
+    document.getElementById("setupDiv").style.display="none";
+    document.getElementById("fightDiv").style.display="block";
+
+    updateBoss();
+}
+
+function updateBoss(){
+    let c=document.getElementById("heartsContainer");
+    c.innerHTML="";
+    for(let i=0;i<boss.hearts;i++) c.innerHTML+="❤️";
+}
+
+/* ================= ELEVE RANDOM ================= */
+
+function showRandomStudent(){
+
+    let alive = students.filter(s => (s.hearts || 0) > 0);
+
+    if(alive.length === 0){
+        alert("Aucun élève vivant !");
+        return;
+    }
+
+    let s = alive[Math.floor(Math.random()*alive.length)];
+    currentStudent = s;
+
+    let index = students.indexOf(s);
+
+    document.getElementById("popupImg").src = "student"+(index+1)+".png";
+    document.getElementById("popupName").innerText = s.name;
+
+    updatePopup();
+
+    document.getElementById("studentPopup").style.display="block";
+}
+
+function updatePopup(){
+    if(!currentStudent) return;
+
+    document.getElementById("popupStats").innerHTML =
+        "❤️ "+(currentStudent.hearts||0)+"/10<br>"+
+        "🪙 "+(currentStudent.gold||0)+"<br>"+
+        "🔮 "+(currentStudent.mana||0)+"<br>"+
+        "⭐ XP "+(currentStudent.xp||0);
+}
+
+function closePopup(){
+    document.getElementById("studentPopup").style.display="none";
+}
+
+/* ================= MANA ================= */
+
+function changeMana(v){
+    if(!currentStudent) return;
+    currentStudent.mana = Math.max(0,(currentStudent.mana||0)+v);
+    updatePopup();
+}
+
+function openManaShop(){
+    document.getElementById("manaShop").style.display="block";
+}
+
+function closeManaShop(){
+    document.getElementById("manaShop").style.display="none";
+}
+
+/* ================= SORTS ================= */
+
+function buySpell(type,cost){
+
+    if(!currentStudent) return;
+
+    if((currentStudent.mana||0) < cost){
+        alert("Pas assez de mana !");
+        return;
+    }
+
+    currentStudent.mana -= cost;
+
+    if(type === "fire") boss.hearts -= 1;
+    if(type === "ice") boss.hearts -= 2;
+    if(type === "storm") boss.hearts -= 3;
+    if(type === "heal") boss.hearts += 1;
+    if(type === "ultra") boss.hearts = 0;
+
+    if(boss.hearts < 0) boss.hearts = 0;
+
+    updateBoss();
+    updatePopup();
+    closeManaShop();
+
+    if(boss.hearts === 0){
+        victory();
+    }
+}
+
+/* ================= COMBAT ================= */
+
+function goodAnswer(){
+    boss.hearts--;
+    updateBoss();
+    if(boss.hearts<=0) victory();
+}
+
+function wrongAnswer(){
+    wrongCount++;
+    if(wrongCount>=boss.escape){
+        alert("Boss fuite !");
+    }
+}
+
+/* ================= VICTOIRE ================= */
+
+function addXP(s, amount){
+
+    s.xp = (s.xp||0) + amount;
+
+    if(!s.level) s.level = 1;
+
+    while(s.xp >= 1000){
+        s.xp -= 1000;
+        s.level++;
+    }
+}
+
+function victory(){
+
+    let alive = students.filter(s => (s.hearts || 0) > 0);
+
+    alive.forEach(s=>{
+        s.gold = (s.gold||0) + boss.gold;
+        s.mana = (s.mana||0) + boss.mana;
+        addXP(s, boss.xp);
+    });
+
+    localStorage.setItem("class_"+className, JSON.stringify(students));
+
+    alert("Boss vaincu !");
+}
+
+</script>
+
+</body>
+</html>

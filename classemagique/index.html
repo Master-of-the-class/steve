@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Classe Magique</title>
+
+<style>
+body{
+    font-family:Arial;
+    text-align:center;
+    background:#f4f4f4;
+}
+
+button{
+    padding:10px 15px;
+    margin:5px;
+    cursor:pointer;
+}
+
+input{
+    padding:5px;
+}
+</style>
+</head>
+<body>
+
+<h1>📚 Gestion de Classes</h1>
+
+<h3>Créer une nouvelle classe</h3>
+<input type="text" id="className" placeholder="Nom de la classe">
+<input type="number" id="studentCount" placeholder="Nombre d'élèves (max 50)" max="50">
+<button onclick="createClass()">Créer</button>
+
+<hr>
+
+<h3>Classes existantes</h3>
+<div id="classList"></div>
+
+<hr>
+<h3>Enregistrer / Charger les classes</h3>
+<button onclick="exportAllClasses()">💾 Exporter toutes les classes</button><br><br>
+<input type="file" id="importClassesFile" style="display:none" onchange="importAllClasses(event)">
+<button onclick="document.getElementById('importClassesFile').click()">📂 Importer des classes</button>
+
+<script>
+function loadClasses(){
+    let list = document.getElementById("classList");
+    list.innerHTML = "";
+    for(let key in localStorage){
+        if(key.startsWith("class_")){
+            let name = key.replace("class_","");
+            list.innerHTML += `
+                <div>
+                    ${name}
+                    <button onclick="openClass('${name}')">Ouvrir</button>
+                </div>
+            `;
+        }
+    }
+}
+
+function createClass(){
+    let name = document.getElementById("className").value;
+    let count = parseInt(document.getElementById("studentCount").value);
+
+    if(!name || count < 1 || count > 50){
+        alert("Veuillez saisir un nom valide et un nombre d'élèves entre 1 et 50");
+        return;
+    }
+
+    let students = [];
+    for(let i=0;i<count;i++){
+        students.push({
+            name:"Élève "+(i+1),
+            hearts:10,
+            gold:0,
+            mana:5,
+        });
+    }
+
+    localStorage.setItem("class_"+name, JSON.stringify(students));
+    loadClasses();
+}
+
+function openClass(name){
+    window.location.href = "class.html?name=" + name;
+}
+
+// Exporter toutes les classes au format JSON
+function exportAllClasses(){
+    const allClasses = {};
+    for(let key in localStorage){
+        if(key.startsWith("class_")){
+            allClasses[key] = localStorage.getItem(key);
+        }
+    }
+
+    const data = JSON.stringify(allClasses, null, 2);
+    const blob = new Blob([data], {type:"application/json"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "toutes_les_classes.json";
+    link.click();
+}
+
+// Importer des classes depuis un fichier JSON
+function importAllClasses(event){
+    const file = event.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        try {
+            const imported = JSON.parse(e.target.result);
+
+            if(typeof imported !== "object" || Array.isArray(imported)){
+                alert("Format de fichier invalide !");
+                return;
+            }
+
+            // Enregistrer chaque classe dans localStorage
+            for(let key in imported){
+                localStorage.setItem(key, imported[key]);
+            }
+
+            alert("Classes importées avec succès !");
+            loadClasses(); // Actualiser la liste des classes
+        } catch(err){
+            alert("Erreur lors de la lecture du fichier : " + err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+loadClasses();
+</script>
+
+</body>
+</html>
+

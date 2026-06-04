@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Classe</title>
+<style>
+body{
+    font-family: Arial;
+    margin:0;
+    background:#f0f0f0;
+    overflow:auto;
+}
+
+/* Top Bar */
+.topbar{
+    background:#333;
+    color:white;
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+button{
+    padding:5px 10px;
+    cursor:pointer;
+}
+
+/* Responsive Grid */
+.container{
+    display:grid;
+    gap:10px;
+    padding:10px;
+    min-height:calc(100vh - 60px);
+    box-sizing:border-box;
+}
+
+/* Student Card */
+.card{
+    background:white;
+    border-radius:10px;
+    box-shadow:0 0 5px rgba(0,0,0,0.2);
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:5px;
+    cursor:pointer;
+    position:relative;
+}
+
+.selectBox{
+    position:absolute;
+    top:8px;
+    left:8px;
+    transform:scale(1.3);
+    cursor:pointer;
+}
+
+.card img{
+    width:100%;
+    height:65%;
+    object-fit:cover;
+    border-radius:8px;
+}
+
+.stats{
+    font-size:clamp(10px,1vw,16px);
+}
+
+/* Popup + Settings */
+.popup, .settings{
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 15px black;
+    z-index:1000;
+    width:300px;
+}
+
+.overlay{
+    display:none;
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    top:0;
+    left:0;
+}
+.miniBtn{
+    padding:1px 5px;
+    font-size:12px;
+    margin-left:2px;
+}
+
+#levelBanner{
+    position:fixed;
+    top:40%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:gold;
+    color:black;
+    font-size:50px;
+    font-weight:bold;
+    padding:30px 60px;
+    border-radius:20px;
+    display:none;
+    z-index:2000;
+    box-shadow:0 0 40px orange;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <div id="classTitle"></div>
+    <div>
+		<button onclick="goToBoss()">👹 Combat Boss</button>
+        <button onclick="openTools()">🛠 Outils</button>
+        <button onclick="openSettings()">⚙ Paramètres</button>
+        <button onclick="goBack()">Menu Principal</button>
+	</div>
+</div>
+
+<div class="container" id="students"></div>
+
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<!-- Student Popup -->
+<div class="popup" id="popup">
+    <h3>Modifier l'élève</h3>
+    Nom:<br>
+    <input type="text" id="studentName"><br><br>
+<img id="previewImage"
+     style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid #ccc;"><br><br>
+
+<input type="file" id="studentImage" accept="image/*"><br><br>
+    ❤️ Cœurs : <span id="liveHearts"></span><br>
+    <button onclick="changeHearts(1)">+</button>
+    <button onclick="changeHearts(-1)">-</button>
+    <br><br>
+
+    🪙 Or : <span id="liveGold"></span><br>
+    <input type="number" id="goldInput">
+    <button onclick="changeGold()">Appliquer</button>
+    <br><br>
+
+    🔮 Mana : <span id="liveMana"></span><br>
+    <button onclick="changeMana(1)">+</button>
+    <button onclick="changeMana(-1)">-</button>
+    <br><br>
+
+	<br>
+	⭐ XP : <span id="liveXP"></span><br>
+	<input type="number" id="xpInput" placeholder="Ajouter XP">
+	<button onclick="changeXP()">Appliquer</button>
+	<br><br>
+
+    <button onclick="saveAndClose()">Enregistrer</button>
+</div>
+
+<!-- Settings Menu -->
+<div class="settings" id="settingsMenu">
+    <h3>Paramètres</h3>
+    <button onclick="resetClass()">Réinitialiser la classe</button><br><br>
+    <button onclick="deleteClass()">Supprimer la classe</button><br><br>
+    <button onclick="closeAll()">Fermer</button>
+	<button onclick="renameClass()">✏️ Renommer la classe</button><br><br>
+</div>
+
+<!-- Tools Menu -->
+<div class="settings" id="toolsMenu">
+    <h3>Outils</h3>
+    <button onclick="pickRandomStudent()">🎲 Élève au hasard</button>
+    <br><br>
+    <label>Taille des groupes (2–6) :</label><br>
+    <input type="number" id="groupSize" min="2" max="6" value="2">
+    <button onclick="makeGroups()">Créer les groupes</button>
+    <br><br>
+    <label><input type="checkbox" id="muteToggle" onchange="toggleMute()"> Couper le son</label>
+    <br><br>
+	<label><input type="checkbox" id="noRepeatToggle"> Ne pas répéter avant d'avoir tout choisi</label>
+	<br><br>
+	<button onclick="resetPicked()">Réinitialiser les élèves choisis</button>
+	<br><br>
+    <button onclick="closeAll()">Fermer</button>
+	<br><br>
+	<button onclick="exportClass()">💾 Exporter la classe</button><br><br>
+	<input type="file" id="importFile" style="display:none" onchange="importClass(event)">
+	<button onclick="document.getElementById('importFile').click()">📂 Importer la classe</button>
+</div>
+
+<div class="popup" id="bulkPopup">
+    <h3>Récompense de groupe</h3>
+
+    ❤️ Cœurs :
+    <input type="number" id="bulkHearts" value="0"><br><br>
+
+    🔮 Mana :
+    <input type="number" id="bulkMana" value="0"><br><br>
+
+    🪙 Or :
+    <input type="number" id="bulkGold" value="0"><br><br>
+
+    ⭐ XP :
+    <input type="number" id="bulkXP" value="0"><br><br>
+
+    <button onclick="applyBulkReward()">Appliquer</button>
+    <button onclick="closeAll()">Annuler</button>
+</div>
+
+<div class="popup" id="groupPopup">
+    <h3>Groupes</h3>
+    <div id="groupContent" style="max-height:300px;overflow:auto;"></div>
+    <br>
+    <button onclick="downloadGroups()">Télécharger</button>
+    <button onclick="closeAll()">Fermer</button>
+</div>
+
+
+<script>
+/* ==================== INITIAL SETUP ==================== */
+const params = new URLSearchParams(window.location.search);
+let className = params.get("name") || "Default Class";
+document.getElementById("classTitle").innerText = className;
+
+let students = JSON.parse(localStorage.getItem("class_"+className)) || [];
+let current = null;
+let muted = localStorage.getItem("muted")==="true";
+let pickedStudents = [];
+
+/* Ensure new properties exist */
+students.forEach((s,i)=>{
+    if(s.hearts === undefined) s.hearts = 10;
+    if(s.mana === undefined) s.mana = 5;
+    if(s.gold === undefined) s.gold = 0;
+    if(s.xp === undefined) s.xp = 0;
+    if(s.level === undefined) s.level = 1;
+
+    if(s.image === undefined){
+        s.image = "student"+(i+1)+".png";
+    }
+});
+
+function toggleMute(){
+    muted = document.getElementById("muteToggle").checked;
+    localStorage.setItem("muted", muted);
+}
+
+
+/* ==================== SAVE ==================== */
+function saveData(){
+    localStorage.setItem("class_"+className, JSON.stringify(students));
+}
+
+/* ==================== GRID ==================== */
+function updateGrid(){
+    const container = document.getElementById("students");
+    const count = students.length;
+    if(count === 0) return;
+
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    const cols = Math.ceil(Math.sqrt(count * aspectRatio));
+    const rows = Math.ceil(count / cols);
+
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+}
+window.addEventListener("resize", updateGrid);
+
+/* ==================== RENDER ==================== */
+function render(){
+    const container = document.getElementById("students");
+    container.innerHTML = "";
+
+    students.forEach((s,i)=>{
+
+        const imageName = s.image || ("student"+(i+1)+".png");
+        const xpPercent = (s.xp % 1000) / 10;
+
+        container.innerHTML += `
+        <div class="card" id="card-${i}" onclick="openPopup(${i})">
+
+            <input type="checkbox" class="selectBox" value="${i}" onclick="event.stopPropagation()">
+            <img src="${imageName}">
+            <strong>${s.name} - Level: ${s.level}</strong>
+
+            <div style="height:8px;background:#ddd;border-radius:5px;margin:4px 0;">
+                <div style="height:100%;width:${xpPercent}%;background:#4caf50;border-radius:5px;"></div>
+            </div>
+
+           <div class="stats">
+			❤️ ${s.hearts}/10
+<span>
+<button class="miniBtn"
+onclick="event.stopPropagation(); quickHeart(${i},1)">+</button>
+<button class="miniBtn"
+onclick="event.stopPropagation(); quickHeart(${i},-1)">-</button>
+</span>
+<br>
+			🪙 ${s.gold}
+<span>
+<button class="miniBtn"
+onclick="event.stopPropagation(); quickGold(${i},1)">+</button>
+<button class="miniBtn"
+onclick="event.stopPropagation(); quickGold(${i},-1)">-</button>
+</span>
+<br>
+			🔮 ${s.mana}/5
+<span>
+<button class="miniBtn"
+onclick="event.stopPropagation(); quickMana(${i},1)">+</button>
+<button class="miniBtn"
+onclick="event.stopPropagation(); quickMana(${i},-1)">-</button>
+</span>
+<br>
+			⭐
+			<button onclick="event.stopPropagation(); quickXP(${i},150)">+150 XP</button>
+			</div>
+        </div>
+        `;
+    });
+
+    updateGrid();
+}
+render();
+document.getElementById("muteToggle").checked = muted;
+const imageInput = document.getElementById("studentImage");
+
+imageInput.addEventListener("change", function(e){
+
+    const file = e.target.files[0];
+    if(!file || current === null) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event){
+
+        students[current].image = event.target.result;
+
+        document.getElementById("previewImage").src =
+            event.target.result;
+
+        saveData();
+        render();
+    };
+
+    reader.readAsDataURL(file);
+});
+/* ==================== POPUP ==================== */
+function openPopup(index){
+    current = index;
+    const s = students[index];
+
+    studentName.value = s.name;
+document.getElementById("previewImage").src = s.image;
+    updateLive();
+
+    document.getElementById("card-"+index).style.outline="3px solid orange";
+
+    overlay.style.display="block";
+    popup.style.display="block";
+}
+
+function updateLive(){
+    const s = students[current];
+    liveHearts.innerText = s.hearts+"/10";
+    liveGold.innerText = s.gold;
+    liveMana.innerText = s.mana+"/5";
+    liveXP.innerText = s.xp + " / 1000";
+}
+
+
+/* ==================== HEART ANIMATION ==================== */
+function heartEffect(index, positive=true){
+    const card = document.getElementById("card-"+index);
+    const heart = document.createElement("div");
+    heart.innerText = positive ? "❤️ +1" : "💔 -1";
+    heart.style.position="absolute";
+    heart.style.color= positive ? "green":"red";
+    heart.style.fontWeight="bold";
+    heart.style.top="50%";
+    heart.style.left="50%";
+    heart.style.transform="translate(-50%,-50%)";
+    heart.style.animation="floatUp 1s forwards";
+    card.appendChild(heart);
+    setTimeout(()=>heart.remove(),1000);
+}
+
+function xpEffect(index, amount){
+    const card = document.getElementById("card-"+index);
+    const xp = document.createElement("div");
+    xp.innerText = "⭐ +" + amount;
+    xp.style.position="absolute";
+    xp.style.color="blue";
+    xp.style.fontWeight="bold";
+    xp.style.top="60%";
+    xp.style.left="50%";
+    xp.style.transform="translate(-50%,-50%)";
+    xp.style.animation="floatUp 1s forwards";
+    card.appendChild(xp);
+    setTimeout(()=>xp.remove(),1000);
+}
+
+
+/* Floating animation */
+const style=document.createElement("style");
+style.innerHTML=`
+@keyframes floatUp{
+0%{opacity:1;transform:translate(-50%,-50%);}
+100%{opacity:0;transform:translate(-50%,-120%);}
+}`;
+document.head.appendChild(style);
+
+/* ==================== SINGLE EDIT ==================== */
+function changeHearts(v){
+    let s = students[current];
+    let old = s.hearts;
+    s.hearts = Math.min(10, Math.max(0,s.hearts+v));
+    if(s.hearts !== old) heartEffect(current, v>0);
+    updateLive();
+}
+
+function changeMana(v){
+    let s = students[current];
+    s.mana = Math.min(5, Math.max(0,s.mana+v));
+    updateLive();
+}
+
+function changeGold(){
+    let amount = parseInt(goldInput.value)||0;
+    let s = students[current];
+    s.gold = Math.max(0,s.gold+amount);
+    updateLive();
+}
+
+/* ==================== QUICK REWARD BUTTONS ==================== */
+function quickHeart(index, value){
+    let s = students[index];
+    let old = s.hearts;
+    s.hearts = Math.min(10, Math.max(0, s.hearts + value));
+    if(s.hearts !== old) heartEffect(index, value>0);
+    saveData();
+    render();
+}
+
+function quickMana(index, value){
+    let s = students[index];
+    s.mana = Math.min(5, Math.max(0, s.mana + value));
+    saveData();
+    render();
+}
+
+function quickGold(index, value){
+    let s = students[index];
+    s.gold = Math.max(0, s.gold + value);
+    saveData();
+    render();
+}
+
+function quickXP(index, amount){
+    addXP(amount, index);
+    saveData();
+    render();
+}
+
+
+/* ==================== XP SYSTEM ==================== */
+let levelSound = new Audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3");
+
+function addXP(amount,index){
+    let s = students[index];
+    s.xp += amount;
+
+    xpEffect(index, amount);
+
+    while(s.xp >= 1000){
+        s.xp -= 1000;
+        s.level++;
+
+        levelUpEffect(index);
+        if(!muted) levelSound.play();
+    }
+}
+
+
+function changeXP(){
+    let amount = parseInt(document.getElementById("xpInput").value) || 0;
+    if(amount <= 0) return;
+
+    addXP(amount, current);
+    updateLive();
+    saveData();
+    render();
+}
+
+
+function levelUpEffect(index){
+    const card = document.getElementById("card-"+index);
+    card.style.boxShadow="0 0 20px gold";
+    card.style.transition="0.3s";
+
+    const banner = document.getElementById("levelBanner");
+    banner.style.display="block";
+
+    setTimeout(()=>{
+        card.style.boxShadow="0 0 5px rgba(0,0,0,0.2)";
+        banner.style.display="none";
+    },1500);
+}
+
+
+
+/* ==================== SAVE ==================== */
+function saveAndClose(){
+    students[current].name = studentName.value;
+    saveData();
+    render();
+    closeAll();
+}
+
+/* ==================== MULTI SELECT REWARD ==================== */
+function bulkReward(){
+    let selected = [...document.querySelectorAll(".selectBox:checked")];
+
+    if(selected.length === 0){
+        alert("Aucun élève sélectionné");
+        return;
+    }
+
+    overlay.style.display="block";
+    document.getElementById("bulkPopup").style.display="block";
+}
+
+function applyBulkReward(){
+    let selected = [...document.querySelectorAll(".selectBox:checked")]
+                    .map(cb => parseInt(cb.value));
+
+    let hearts = parseInt(document.getElementById("bulkHearts").value) || 0;
+    let mana   = parseInt(document.getElementById("bulkMana").value) || 0;
+    let gold   = parseInt(document.getElementById("bulkGold").value) || 0;
+    let xp     = parseInt(document.getElementById("bulkXP").value) || 0;
+
+    selected.forEach(i=>{
+        students[i].hearts = Math.min(10, Math.max(0, students[i].hearts + hearts));
+        students[i].mana   = Math.min(5, Math.max(0, students[i].mana + mana));
+        students[i].gold   = Math.max(0, students[i].gold + gold);
+
+        if(xp !== 0){
+            addXP(xp, i);
+        }
+    });
+
+    saveData();
+    render();
+
+    // clear selection
+    document.querySelectorAll(".selectBox").forEach(cb=>cb.checked=false);
+
+    closeAll();
+
+}
+
+
+/* ==================== RESET & DELETE FIX ==================== */
+function resetClass(){
+    if(confirm("Réinitialiser les statistiques de la classe ?")){
+        students.forEach(s=>{
+            s.hearts = 10;
+            s.mana = 5;
+            s.gold = 0;
+            s.xp = 0;
+            s.level = 1;
+        });
+        saveData();
+        render();
+        closeAll();
+    }
+}
+
+
+
+function deleteClass(){
+    if(confirm("Delete this class permanently?")){
+        localStorage.removeItem("class_"+className);
+        window.location.href="index.html";
+    }
+}
+
+function goBack(){
+    window.location.href="index.html";
+}
+
+
+/* ==================== SETTINGS ==================== */
+function openSettings(){ overlay.style.display="block"; settingsMenu.style.display="block"; }
+function openTools(){ overlay.style.display="block"; toolsMenu.style.display="block"; }
+function closeAll(){
+    overlay.style.display="none";
+    popup.style.display="none";
+    settingsMenu.style.display="none";
+    toolsMenu.style.display="none";
+    document.getElementById("bulkPopup").style.display="none";
+    document.getElementById("groupPopup").style.display="none";
+    document.querySelectorAll(".card").forEach(c=>c.style.outline="none");
+saveData();
+render();
+}
+
+
+/* Add bulk button to Tools menu */
+const bulkBtn=document.createElement("button");
+bulkBtn.innerText="🎁 Bulk Reward";
+bulkBtn.onclick=bulkReward;
+document.getElementById("toolsMenu").appendChild(bulkBtn);
+
+/*Random student picker*/
+function pickRandomStudent(){
+
+    if(students.length === 0){
+        alert("Aucun élève dans la classe");
+        return;
+    }
+
+    let available = students.map((s,i)=>i);
+
+    if(document.getElementById("noRepeatToggle").checked){
+        available = available.filter(i => !pickedStudents.includes(i));
+
+        if(available.length === 0){
+            alert("Tous les élèves ont déjà été choisis !");
+            return;
+        }
+    }
+
+    const index = available[Math.floor(Math.random()*available.length)];
+
+    if(document.getElementById("noRepeatToggle").checked){
+        pickedStudents.push(index);
+    }
+
+    document.querySelectorAll(".card").forEach(c=>{
+        c.style.outline="none";
+        c.style.transform="scale(1)";
+    });
+
+    const card = document.getElementById("card-"+index);
+    card.style.outline="4px solid purple";
+    card.style.transform="scale(1.05)";
+    card.style.transition="0.3s";
+
+    alert("🎉 Élève sélectionné : " + students[index].name);
+}
+
+
+/*reset function*/
+function resetPicked(){
+    pickedStudents = [];
+    alert("Liste des élèves choisis réinitialisée !");
+}
+
+
+/*group maker*/
+function makeGroups(){
+
+    if(students.length === 0){
+        alert("Il n'y a pas d'élèves dans la classe");
+        return;
+    }
+
+    let groupSize = parseInt(document.getElementById("groupSize").value);
+    if(groupSize < 2) groupSize = 2;
+    if(groupSize > 6) groupSize = 6;
+
+    let shuffled = [...students]
+        .map((s,i)=>({student:s,index:i}))
+        .sort(()=>Math.random()-0.5);
+
+    let groups = [];
+    let usedIndexes = [];
+
+    for(let i=0; i<shuffled.length; i+=groupSize){
+        let group = shuffled.slice(i, i+groupSize);
+
+        // If only one left → FREE student
+        if(group.length === 1){
+            break;
+        }
+
+        group.forEach(member=>{
+            usedIndexes.push(member.index);
+        });
+
+        groups.push(group);
+    }
+
+    // FREE students
+    let freeStudents = students
+        .map((s,i)=>({student:s,index:i}))
+        .filter(s => !usedIndexes.includes(s.index));
+
+    // Clear outlines
+    document.querySelectorAll(".card").forEach(c=>c.style.outline="none");
+
+    const colors = ["red","blue","green","orange","purple","brown"];
+
+    groups.forEach((group,gIndex)=>{
+        group.forEach(member=>{
+            const card = document.getElementById("card-"+member.index);
+            card.style.outline="4px solid "+colors[gIndex % colors.length];
+        });
+    });
+
+    // Build popup content
+    let content = "";
+
+    groups.forEach((group,i)=>{
+        content += "<strong>Groupe "+(i+1)+"</strong><br>";
+        group.forEach(member=>{
+            content += "- " + member.student.name + "<br>";
+        });
+        content += "<br>";
+    });
+
+    // SHOW FREE STUDENTS
+    if(freeStudents.length > 0){
+        content += "<strong>Élève(s) libre(s)</strong><br>";
+        freeStudents.forEach(member=>{
+            content += "- " + member.student.name + "<br>";
+        });
+    }
+
+    document.getElementById("groupContent").innerHTML = content;
+
+    overlay.style.display="block";
+    document.getElementById("groupPopup").style.display="block";
+
+    window.currentGroups = groups;
+}
+
+
+/*group download*/
+function downloadGroups(){
+
+    if(!window.currentGroups) return;
+
+    let text = "";
+
+    window.currentGroups.forEach((group,i)=>{
+        text += "Groupe "+(i+1)+"\n";
+        group.forEach(member=>{
+            text += "- " + member.student.name + "\n";
+        });
+        text += "\n";
+    });
+
+    const blob = new Blob([text], {type:"text/plain"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "groupes.txt";
+    link.click();
+}
+
+
+function goToBoss(){
+    window.location.href = "boss.html?name=" + encodeURIComponent(className);
+}
+
+// Export class to JSON file
+function exportClass(){
+    const data = JSON.stringify(students, null, 2);
+    const blob = new Blob([data], {type:"application/json"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = className + ".json";
+    link.click();
+}
+
+// Import class from JSON file
+function importClass(event){
+    const file = event.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        try {
+            const importedStudents = JSON.parse(e.target.result);
+            if(!Array.isArray(importedStudents)){
+                alert("Format de fichier invalide !");
+                return;
+            }
+            students = importedStudents;
+
+students.forEach((s,i)=>{
+    if(s.hearts === undefined) s.hearts = 10;
+    if(s.mana === undefined) s.mana = 5;
+    if(s.gold === undefined) s.gold = 0;
+    if(s.xp === undefined) s.xp = 0;
+    if(s.level === undefined) s.level = 1;
+
+    if(s.image === undefined){
+        s.image = "student"+(i+1)+".png";
+    }
+});
+            saveData();
+            render();
+className = newName;
+            alert("Classe importée avec succès !");
+        } catch(err){
+            alert("Erreur lors de la lecture du fichier : " + err);
+        }
+    };
+    reader.readAsText(file);
+}
+
+function renameClass(){
+    const newName = prompt("Entrez le nouveau nom de la classe :", className);
+    if(!newName) return; // canceled or empty
+
+    if(localStorage.getItem("class_" + newName)){
+        alert("Une classe avec ce nom existe déjà !");
+        return;
+    }
+
+    localStorage.setItem("class_" + newName, JSON.stringify(students));
+    localStorage.removeItem("class_" + className);
+    window.history.replaceState({}, '', "class.html?name=" + encodeURIComponent(newName));
+    document.getElementById("classTitle").innerText = newName;
+
+    alert("Classe renommée avec succès !");
+}
+
+
+/* ==================== PAGE REFRESH ==================== */
+let countdown=300;
+const timerDisplay=document.createElement("div");
+timerDisplay.style.position="fixed";
+timerDisplay.style.bottom="10px";
+timerDisplay.style.right="15px";
+timerDisplay.style.background="#222";
+timerDisplay.style.color="white";
+timerDisplay.style.padding="6px 12px";
+timerDisplay.style.borderRadius="8px";
+timerDisplay.innerText="300s";
+document.body.appendChild(timerDisplay);
+
+setInterval(()=>{
+    countdown--;
+    timerDisplay.innerText=""+countdown+"s";
+    if(countdown<=0 && popup.style.display==="none"){
+        location.reload();
+    } else if(countdown<=0){
+        countdown=300;
+    }
+},1000);
+
+</script>
+<div id="levelBanner">NIVEAU SUPÉRIEUR !</div>
+
+</body>
+</html>
