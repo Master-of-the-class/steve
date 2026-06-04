@@ -264,12 +264,13 @@ function showRandomStudent(){
     document.getElementById("overlay").style.display = "block";
 
     document.getElementById("studentPopup").style.display = "block";
+    if(fightEnded) return;
 }
 
 function updatePopup(){
     if(!currentStudent) return;
 
-    popupStats.innerHTML =
+    document.getElementById("popupStats").innerHTML =
         "❤️ "+(currentStudent.hearts||0)+"/10<br>"+
         "🪙 "+(currentStudent.gold||0)+"<br>"+
         "🔮 "+(currentStudent.mana||0)+"<br>"+
@@ -393,7 +394,7 @@ function claimRewards(){
     alert("Récompenses distribuées !");
 
    
-    window.location.href = "classemagique/class.html?name=" + className;
+    window.location.href = "./classemagique/class.html?name=" + encodeURIComponent(className);
 }
 
 function endFight(){
