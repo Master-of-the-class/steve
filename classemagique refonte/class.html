@@ -535,7 +535,20 @@ const params = new URLSearchParams(window.location.search);
 let className = params.get("name") || "Default Class";
 document.getElementById("classTitle").innerText = className;
 let selectedStudents = [];
-let students = JSON.parse(localStorage.getItem("class_"+className)) || [];
+let raw = JSON.parse(
+    localStorage.getItem("class_"+className)
+);
+
+let students = [];
+
+if(Array.isArray(raw)){
+    // Anciennes classes
+    students = raw;
+}
+else if(raw){
+    // Nouvelles classes avec icône
+    students = raw.students || [];
+}
 let current = null;
 let muted = localStorage.getItem("muted")==="true";
 let pickedStudents = [];
@@ -610,7 +623,24 @@ function toggleMute(){
 
 /* ==================== SAVE ==================== */
 function saveData(){
-    localStorage.setItem("class_"+className, JSON.stringify(students));
+
+    let raw = JSON.parse(
+        localStorage.getItem("class_"+className)
+    );
+
+    let icon = "🏫";
+
+    if(raw && !Array.isArray(raw)){
+        icon = raw.icon || "🏫";
+    }
+
+    localStorage.setItem(
+        "class_"+className,
+        JSON.stringify({
+            icon: icon,
+            students: students
+        })
+    );
 }
 
 /* ==================== GRID ==================== */
@@ -1200,22 +1230,70 @@ students.forEach((s,i)=>{
 }
 
 function renameClass(){
-    const newName = prompt("Entrez le nouveau nom de la classe :", className);
-    if(!newName) return; // canceled or empty
+
+    const newName = prompt(
+        "Entrez le nouveau nom de la classe :",
+        className
+    );
+
+    if(!newName) return;
 
     if(localStorage.getItem("class_" + newName)){
         alert("Une classe avec ce nom existe déjà !");
         return;
     }
 
-    localStorage.setItem("class_" + newName, JSON.stringify(students));
-    localStorage.removeItem("class_" + className);
-    window.history.replaceState({}, '', "class.html?name=" + encodeURIComponent(newName));
-    document.getElementById("classTitle").innerText = newName;
+    let raw = JSON.parse(
+        localStorage.getItem("class_" + className)
+    );
+
+    let icon = "🏫";
+
+    if(raw && !Array.isArray(raw)){
+        icon = raw.icon || "🏫";
+    }
+
+    localStorage.setItem(
+        "class_" + newName,
+        JSON.stringify({
+            icon: icon,
+            students: students
+        })
+    );
+
+    // déplacer aussi les sorts
+    let oldSpells =
+        localStorage.getItem(className + "_spells");
+
+    if(oldSpells){
+        localStorage.setItem(
+            newName + "_spells",
+            oldSpells
+        );
+
+        localStorage.removeItem(
+            className + "_spells"
+        );
+    }
+
+    localStorage.removeItem(
+        "class_" + className
+    );
+
+    className = newName;
+
+    document.getElementById("classTitle").innerText =
+        newName;
+
+    window.history.replaceState(
+        {},
+        "",
+        "class.html?name=" +
+        encodeURIComponent(newName)
+    );
 
     alert("Classe renommée avec succès !");
 }
-
 
 /* ==================== PAGE REFRESH ==================== */
 let countdown=300;
