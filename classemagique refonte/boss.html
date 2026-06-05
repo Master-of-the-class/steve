@@ -23,10 +23,34 @@ h1,h2{
 }
 
 h1{
-    font-size:48px;
+    font-size:56px;
     color:gold;
-    text-shadow:0 0 15px gold;
+
+    letter-spacing:3px;
+
+    text-shadow:
+        0 0 10px gold,
+        0 0 20px gold,
+        0 0 40px orange;
+
+    animation:titleGlow 2s infinite alternate;
+
     margin-top:20px;
+}
+
+@keyframes titleGlow{
+    from{
+        text-shadow:
+            0 0 10px gold,
+            0 0 20px gold;
+    }
+
+    to{
+        text-shadow:
+            0 0 20px gold,
+            0 0 40px orange,
+            0 0 60px red;
+    }
 }
 
 /* IMAGE DU BOSS */
@@ -36,7 +60,7 @@ h1{
     height:250px;
     object-fit:cover;
 
-    border-radius:15px;
+    border-radius:20px;
     border:4px solid gold;
 
     margin:20px auto;
@@ -44,11 +68,14 @@ h1{
 
     box-shadow:
         0 0 20px gold,
-        0 0 60px rgba(255,0,0,.25);
+        0 0 40px orange,
+        0 0 80px rgba(255,0,0,.4);
 
-    transition:filter .5s, transform .2s, box-shadow .2s;
+    transition:filter .3s, transform .2s;
 
-    animation:bossFloat 3s ease-in-out infinite;
+    animation:
+        bossFloat 3s ease-in-out infinite,
+        bossGlow 2s ease-in-out infinite alternate;
 }
 
 @keyframes bossFloat{
@@ -56,48 +83,91 @@ h1{
     50%{transform:translateY(-10px);}
 }
 
+@keyframes bossGlow{
+    from{
+        box-shadow:
+            0 0 20px gold,
+            0 0 40px orange,
+            0 0 80px rgba(255,0,0,.3);
+    }
+    to{
+        box-shadow:
+            0 0 30px gold,
+            0 0 60px orange,
+            0 0 120px rgba(255,0,0,.6);
+    }
+}
+
 /* BOUTONS */
 
 button{
-    padding:10px 20px;
+    padding:12px 22px;
     margin:10px;
 
     cursor:pointer;
 
-    border-radius:8px;
-    border:2px solid #c89d45;
+    border-radius:10px;
+    border:2px solid #d8b35c;
 
     font-size:16px;
     font-weight:bold;
 
-    background:linear-gradient(#8b5e34,#5b3719);
+    background:
+        linear-gradient(
+            #9a6a3f,
+            #6f421f
+        );
+
     color:#f7e9c0;
 
     transition:.2s;
+
+    box-shadow:
+        0 4px 10px rgba(0,0,0,.4);
 }
 
 button:hover{
     transform:scale(1.08);
-    box-shadow:0 0 15px gold;
+
+    box-shadow:
+        0 0 20px gold,
+        0 0 40px rgba(255,215,0,.3);
+}
+
+button:active{
+    transform:scale(.95);
 }
 
 /* COEURS DU BOSS */
 
 #heartsContainer{
-    font-size:50px;
+    font-size:55px;
+
     margin:15px 0;
 
-    letter-spacing:6px;
+    letter-spacing:8px;
 
     text-shadow:
         0 0 10px red,
-        0 0 20px red;
+        0 0 20px red,
+        0 0 40px crimson;
 }
 
 #statusContainer{
     font-size:22px;
     margin-bottom:15px;
     color:#f7e9c0;
+}
+
+.victoryText{
+    font-size:36px;
+    color:gold;
+
+    text-shadow:
+        0 0 15px gold,
+        0 0 40px orange;
+
+    animation:victoryPulse 1s infinite alternate;
 }
 
 /* THINKING */
@@ -138,33 +208,43 @@ button:hover{
     transform:translate(-50%, -50%);
 
     width:90%;
-    max-width:300px;
+    max-width:320px;
     max-height:80vh;
 
     overflow-y:auto;
 
     padding:20px;
 
-    background:linear-gradient(#2b1d10,#3b2a18);
+    background:
+        linear-gradient(
+            #3a2613,
+            #1f140a
+        );
 
-    border:2px solid gold;
-    border-radius:15px;
+    border:3px solid gold;
+    border-radius:20px;
 
     color:#f7e9c0;
 
     z-index:5000;
 
     box-shadow:
-        0 0 30px rgba(255,215,0,.2),
-        0 15px 40px rgba(0,0,0,.6);
+        0 0 30px rgba(255,215,0,.4),
+        0 0 60px rgba(0,0,0,.8);
 }
 
 #studentPopup img{
     width:100%;
     max-width:180px;
-    height:auto;
-    object-fit:cover;
-    border-radius:10px;
+
+    border-radius:15px;
+
+    border:3px solid gold;
+
+    box-shadow:
+        0 0 15px gold;
+
+    margin-bottom:10px;
 }
 
 /* BOUTIQUE DE MANA */
@@ -223,19 +303,66 @@ button:hover{
 @media(max-width:500px){
 
     #bossImage{
-        width:180px;
-        height:180px;
+    width:250px;
+    height:250px;
+    object-fit:cover;
+
+    border-radius:20px;
+    border:4px solid gold;
+
+    margin:20px auto;
+    display:block;
+
+    box-shadow:
+        0 0 20px gold,
+        0 0 40px orange,
+        0 0 80px rgba(255,0,0,.4);
+
+    transition:filter .3s, transform .2s;
+
+    animation:
+        bossFloat 3s ease-in-out infinite,
+        bossGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes bossFloat{
+    0%,100%{
+        transform:translateY(0px);
+    }
+    50%{
+        transform:translateY(-12px);
+    }
+}
+
+@keyframes bossGlow{
+    from{
+        box-shadow:
+            0 0 20px gold,
+            0 0 40px orange,
+            0 0 80px rgba(255,0,0,.3);
     }
 
-    button{
-        font-size:14px;
-        padding:8px 16px;
+    to{
+        box-shadow:
+            0 0 30px gold,
+            0 0 60px orange,
+            0 0 120px rgba(255,0,0,.6);
+    }
+}
+
+
+@keyframes victoryPulse{
+    from{
+        transform:scale(1);
     }
 
-    h1{
-        font-size:34px;
+    to{
+        transform:scale(1.08);
     }
-}</style>
+}
+}
+
+</style>
 </head>
 
 <body>
@@ -302,7 +429,13 @@ let raw = JSON.parse(
 );
 
 let students = [];
-
+const statusContainer = document.getElementById("statusContainer");
+const manaShop = document.getElementById("manaShop");
+const spellContainer = document.getElementById("spellContainer");
+const popupImg = document.getElementById("popupImg");
+const popupName = document.getElementById("popupName");
+const popupStats = document.getElementById("popupStats");
+const overlay = document.getElementById("overlay");
 if(Array.isArray(raw)){
     students = raw; // anciennes classes
 }
@@ -356,8 +489,14 @@ function updateBoss(){
 
 
 
-function showRandomStudent(){
 
+function showRandomStudent(){
+    if(fightEnded){
+        alert("Le combat est terminé !");
+        return;
+    }
+
+    closeAll(); 
     let alive = students.filter(s => (s.hearts || 0) > 0);
 
     if(alive.length === 0){
@@ -383,7 +522,7 @@ if(s.image){
     updatePopup();
 
     
-if(fightEnded) return;
+
     document.getElementById("overlay").style.display = "block";
 
     document.getElementById("studentPopup").style.display = "block";
@@ -402,11 +541,9 @@ function updatePopup(){
 
 function closePopup(){
     document.getElementById("studentPopup").style.display="none";
-
-    // 🔥 AJOUT ICI
     document.getElementById("overlay").style.display="none";
+    document.getElementById("manaShop").style.display="none";
 }
-
 
 
 function changeMana(v){
@@ -497,7 +634,9 @@ function victory(){
     btn.innerText = "🎁 Récupérer les récompenses";
     btn.onclick = claimRewards;
 
-    statusContainer.innerHTML = "🏆 Boss vaincu !";
+    statusContainer.innerHTML =
+        '<div class="victoryText">🏆 BOSS VAINCU ! 🏆</div>';
+
     statusContainer.appendChild(document.createElement("br"));
     statusContainer.appendChild(btn);
 }
@@ -552,6 +691,12 @@ function addXP(s, amount){
         s.xp -= 1000;
         s.level++;
     }
+}
+
+function closeAll(){
+    document.getElementById("studentPopup").style.display="none";
+    document.getElementById("overlay").style.display="none";
+    document.getElementById("manaShop").style.display="none";
 }
 </script>
 
