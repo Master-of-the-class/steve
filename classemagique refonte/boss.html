@@ -279,6 +279,48 @@ button:active{
     padding-bottom:320px;
 }
 
+#currentStudentBar{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    padding:10px;
+    z-index:9999;
+}
+
+.studentCard{
+    background:linear-gradient(#2a1a10, #120b07);
+    border:2px solid gold;
+    border-radius:15px;
+    padding:10px;
+    width:220px;
+    text-align:center;
+    box-shadow:0 0 15px rgba(255,215,0,0.3);
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.studentCard:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 25px gold;
+}
+
+.studentCard img{
+    width:80px;
+    height:80px;
+    object-fit:cover;
+    border-radius:10px;
+    border:2px solid gold;
+    margin-bottom:5px;
+}
+
+.studentStats{
+    font-size:12px;
+    color:#f7e9c0;
+}
+
 /* ANIMATION DE DÉGÂTS */
 
 @keyframes shake{
@@ -396,6 +438,7 @@ button:active{
 <br>
 
 <button onclick="showRandomStudent()">🎲 Élève au hasard</button>
+<button onclick="skipTurn()">⏭️ Passer son tour</button>
 </div>
 
 </div>
@@ -420,6 +463,8 @@ button:active{
     <button onclick="closeManaShop()">Fermer</button>
 </div>
 
+<div id="currentStudentBar"></div>
+
 <script>
 let params = new URLSearchParams(window.location.search);
 let className = params.get("name") || "Classe";
@@ -427,8 +472,9 @@ let className = params.get("name") || "Classe";
 let raw = JSON.parse(
     localStorage.getItem("class_" + className)
 );
-
+let selectedStudentLocked = null;
 let students = [];
+let usedStudents = [];
 const statusContainer = document.getElementById("statusContainer");
 const manaShop = document.getElementById("manaShop");
 const spellContainer = document.getElementById("spellContainer");
@@ -475,18 +521,79 @@ function startFight(){
 
     document.getElementById("setupDiv").style.display="none";
     document.getElementById("fightDiv").style.display="block";
-
+    usedStudents = [];
+    currentStudent = null;
+    renderSelectedStudentBar();
     updateBoss();
 }
 
+function skipTurn(){
+    if(fightEnded) return;
 
+
+
+    alert("Tour passé !");
+clearSelectedStudent();
+}
 
 function updateBoss(){
     let c = document.getElementById("heartsContainer");
     c.innerHTML = "";
     for(let i=0;i<boss.hearts;i++) c.innerHTML += "❤️";
+
+    // affichage fuite
+    let remaining = boss.escape - wrongCount;
+
+    document.getElementById("statusContainer").innerHTML =
+        `⏳ Tentatives restantes : ${remaining}`;
 }
 
+function bossFlees(){
+    fightEnded = true;
+
+    statusContainer.innerHTML =
+        `<div class="victoryText">💨 Le boss s'est enfui !</div>`;
+
+    let btn = document.createElement("button");
+    btn.innerText = "🏫 Retourner à la classe";
+    btn.onclick = () => {
+        window.location.href = "class.html?name=" + encodeURIComponent(className);
+    };
+
+    statusContainer.appendChild(document.createElement("br"));
+    statusContainer.appendChild(btn);
+}
+function renderSelectedStudentBar(){
+    const bar = document.getElementById("currentStudentBar");
+
+    if(!currentStudent){
+        bar.innerHTML = "";
+        return;
+    }
+
+    bar.innerHTML = `
+        <div class="studentCard" onclick="reopenStudentPopup()">
+
+            ${currentStudent.image ? `
+                <img src="${currentStudent.image}">
+            ` : ""}
+
+            <div><b>${currentStudent.name}</b></div>
+
+            <div class="studentStats">
+                ❤️ ${currentStudent.hearts || 0}<br>
+                🔮 ${currentStudent.mana || 0}<br>
+                🪙 ${currentStudent.gold || 0}<br>
+                ⭐ XP ${currentStudent.xp || 0}
+            </div>
+
+        </div>
+    `;
+}
+
+function updateStudentCard(){
+    renderSelectedStudentBar();
+}
 
 
 
@@ -496,38 +603,76 @@ function showRandomStudent(){
         return;
     }
 
-    closeAll(); 
+    closeAll();
+
     let alive = students.filter(s => (s.hearts || 0) > 0);
 
-    if(alive.length === 0){
+    // ❌ on retire ceux déjà utilisés dans ce cycle
+    let available = alive.filter(s => !usedStudents.includes(s));
+
+    // 🔁 si tout le monde a déjà joué → on reset le cycle
+    if(available.length === 0){
+        usedStudents = [];
+        available = alive;
+
+        alert("🔄 Tous les élèves ont joué ! Nouveau cycle !");
+    }
+
+    if(available.length === 0){
         alert("Aucun élève vivant !");
         return;
     }
 
-    let s = alive[Math.floor(Math.random()*alive.length)];
+    let s = available[Math.floor(Math.random() * available.length)];
     currentStudent = s;
 
-   
+    usedStudents.push(s);
 
     const img = document.getElementById("popupImg");
 
-if(s.image){
-    img.src = s.image;
-    img.style.display = "block";
-}else{
-    img.style.display = "none";
-}
+    if(s.image){
+        img.src = s.image;
+        img.style.display = "block";
+    } else {
+        img.style.display = "none";
+    }
+
     document.getElementById("popupName").innerText = s.name;
 
     updatePopup();
 
-    
+    document.getElementById("overlay").style.display = "block";
+    document.getElementById("studentPopup").style.display = "block";
+
+    renderSelectedStudentBar();
+}
+
+function clearSelectedStudent(){
+    currentStudent = null;
+    renderSelectedStudentBar();
+}
+
+function reopenStudentPopup(){
+    if(!currentStudent) return;
+
+    const img = document.getElementById("popupImg");
+
+    if(currentStudent.image){
+        img.src = currentStudent.image;
+        img.style.display = "block";
+    } else {
+        img.style.display = "none";
+    }
+
+    document.getElementById("popupName").innerText = currentStudent.name;
+
+    updatePopup();
 
     document.getElementById("overlay").style.display = "block";
-
     document.getElementById("studentPopup").style.display = "block";
-    
 }
+
+
 
 function updatePopup(){
     if(!currentStudent) return;
@@ -537,6 +682,7 @@ function updatePopup(){
         "🪙 "+(currentStudent.gold||0)+"<br>"+
         "🔮 "+(currentStudent.mana||0)+"<br>"+
         "⭐ XP "+(currentStudent.xp||0);
+updateStudentCard();
 }
 
 function closePopup(){
@@ -550,6 +696,7 @@ function changeMana(v){
     if(!currentStudent) return;
     currentStudent.mana = Math.max(0,(currentStudent.mana||0)+v);
     updatePopup();
+updateStudentCard();
 }
 
 
@@ -594,6 +741,7 @@ function useSpell(spell){
     updateBoss();
     updatePopup();
     closeManaShop();
+updateStudentCard();
 
     if(boss.hearts === 0){
         victory();
@@ -608,9 +756,10 @@ function goodAnswer(){
     boss.hearts--;
     shakeBoss(); 
     updateBoss();
-
+clearSelectedStudent();
     if(boss.hearts <= 0){
         victory();
+
     }
 }
 
@@ -618,10 +767,13 @@ function wrongAnswer(){
     if(fightEnded) return;
 
     wrongCount++;
+clearSelectedStudent();
     if(wrongCount >= boss.escape){
-        alert("Le boss s'est enfui !");
-        endFight();
+        bossFlees();
+        return;
+
     }
+updateBoss();
 }
 
 
