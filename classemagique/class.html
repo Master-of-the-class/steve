@@ -67,7 +67,7 @@ button{
     );
 
     border:2px solid #8b6b3f;
-    border-radius:14px;
+   /* border-radius:14px;*/
 backdrop-filter: blur(2px);
     border-radius: 16px;
     padding:6px;
@@ -79,20 +79,25 @@ backdrop-filter: blur(2px);
 
     cursor:pointer;
     position:relative;
- position: relative;
+ 
     overflow: hidden;
     box-shadow:
         0 4px 12px rgba(0,0,0,.25);
 
     transition:
-        transform .2s,
-        box-shadow .2s;
-	aspect-ratio: auto;
-/* aspect-ratio: 3 / 4;*/
+       
+aspect-ratio: auto;
+/*aspect-ratio: 3 / 4;*/
 transition: transform 0.2s ease, box-shadow 0.2s ease;
     min-height:150px;
 }
 
+.card.dead{
+    border:2px solid darkred;
+    background: linear-gradient(180deg, #7a1f1f, #3a0f0f);
+    filter: grayscale(0.3) brightness(0.8);
+    box-shadow: 0 0 15px rgba(255,0,0,0.4);
+}
 .card:hover {
     transform: translateY(-6px) scale(1.03);
 
@@ -417,6 +422,7 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 <div class="topbar">
     <div id="classTitle"></div>
     <div>
+<button onclick="selectAllStudents()">✅ Tous</button>
 		<button onclick="goToBoss()">👹 Combat Boss</button>
         <button onclick="openTools()">🛠 Outils</button>
         <button onclick="openSettings()">⚙ Paramètres</button>
@@ -432,34 +438,83 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 <div class="popup" id="popup">
     <h3>Modifier l'élève</h3>
     Nom:<br>
-    <input type="text" id="studentName"><br><br>
+    <input type="text" id="studentName">
 <img id="previewImage"
-     style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid #ccc;"><br><br>
+     style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid #ccc;">
 
-<input type="file" id="studentImage" accept="image/*"><br><br>
-    ❤️ Cœurs : <span id="liveHearts"></span><br>
+<input type="file" id="studentImage" accept="image/*">
+<button onclick="restoreDefaultImage()">
+🧙 Image par défaut
+</button>
+
+<br>
+
+<b>Personnage</b><br>
+
+<button onclick="setGender('m')">
+♂ Masculin
+</button>
+
+<button onclick="setGender('f')">
+♀ Féminin
+</button>
+
+
+
+<span id="genderDisplay"></span>
+
+<br><br>
+    ❤️ Cœurs : <span id="liveHearts"></span>
     <button onclick="changeHearts(1)">+</button>
     <button onclick="changeHearts(-1)">-</button>
-    <br><br>
+    <br>
 
-    🪙 Or : <span id="liveGold"></span><br>
+    🪙 Or : <span id="liveGold"></span>
+<button onclick="openStudentShop(current)">🛒 Boutique</button>
+<br>
     <input type="number" id="goldInput">
     <button onclick="changeGold()">Appliquer</button>
-    <br><br>
+    <br>
 
-    🔮 Mana : <span id="liveMana"></span><br>
+    🔮 Mana : <span id="liveMana"></span>
     <button onclick="changeMana(1)">+</button>
     <button onclick="changeMana(-1)">-</button>
+<button onclick="openSpellShop()">🧙 Sorts</button>
     <br><br>
 
-	<br>
+	
 	⭐ XP : <span id="liveXP"></span><br>
 	<input type="number" id="xpInput" placeholder="Ajouter XP">
 	<button onclick="changeXP()">Appliquer</button>
-	<br><br>
+<button onclick="toggleAbsent()">🚫 Absent / Présent</button>
+<br><br>
+	
 
     <button onclick="saveAndClose()">Enregistrer</button>
 </div>
+
+<div class="popup" id="redemptionPopup">
+    <h3>💀 Rédemption</h3>
+
+    <img id="redemptionImage"
+         style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid darkred;display:block;margin:auto;">
+
+    <p id="redemptionName" style="text-align:center;font-weight:bold;"></p>
+
+    <p style="text-align:center;color:#ffaaaa;">
+        Cet élève est à 0 ❤️
+    </p>
+
+    <button onclick="redeemStudent()"
+        style="width:100%;background:darkred;">
+        ✨ Rédemption (+1 ❤️)
+    </button>
+
+    <button onclick="closeRedemption()">
+        Fermer
+    </button>
+</div>
+
 
 <!-- Settings Menu -->
 <div class="settings" id="settingsMenu">
@@ -468,6 +523,18 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
     <button onclick="deleteClass()">Supprimer la classe</button><br><br>
     <button onclick="closeAll()">Fermer</button>
 	<button onclick="renameClass()">✏️ Renommer la classe</button><br><br>
+<br><br>
+<hr style="border:1px solid #a88443;">
+
+<h4>💾 Sauvegarde de classe</h4>
+
+<button onclick="exportClass()">💾 Exporter la classe</button><br><br>
+
+<input type="file" id="importFile" style="display:none" onchange="importClass(event)">
+
+<button onclick="document.getElementById('importFile').click()">
+📂 Importer la classe
+</button>
 </div>
 
 <!-- Tools Menu -->
@@ -486,11 +553,15 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 	<button onclick="resetPicked()">Réinitialiser les élèves choisis</button>
 	<br><br>
 	<button onclick="openSpellEditor()">🧙 Configurer les sorts</button>
-    <button onclick="closeAll()">Fermer</button>
+   
 	<br><br>
-	<button onclick="exportClass()">💾 Exporter la classe</button><br><br>
-	<input type="file" id="importFile" style="display:none" onchange="importClass(event)">
-	<button onclick="document.getElementById('importFile').click()">📂 Importer la classe</button>
+	<button onclick="openShopEditor()">🛒 Configurer boutique</button><br><br>
+<button onclick="openWeeklyRewards()">
+📅 Récompenses hebdomadaires
+</button>
+<br><br>
+ <button onclick="closeAll()">Fermer</button><br><br>
+
 </div>
 
 <div class="popup" id="bulkPopup">
@@ -511,7 +582,16 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
     <button onclick="applyBulkReward()">Appliquer</button>
     <button onclick="closeAll()">Annuler</button>
 </div>
-
+<div class="popup" id="spellShopPopup">
+    <h3>🧙 Boutique de sorts</h3>
+    <div id="spellShopList"></div>
+    <button onclick="closeSpellShop()">Fermer</button>
+</div>
+<div class="popup" id="shopPopup">
+    <h3>🛒 Boutique</h3>
+    <div id="shopList"></div>
+    <button onclick="closeShop()">Fermer</button>
+</div>
 <div class="popup" id="groupPopup">
     <h3>Groupes</h3>
     <div id="groupContent" style="max-height:300px;overflow:auto;"></div>
@@ -521,7 +601,7 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 </div>
 
 	<div class="popup" id="spellEditor">
-    <h3>🧙 Sorts du Boss</h3>
+    <h3>🧙 Sortilèges</h3>
 
     <div id="spellList"></div>
 
@@ -530,42 +610,527 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
     <button onclick="closeSpellEditor()">Fermer</button>
 </div>
 
+<div class="popup" id="shopEditor" style="display:none;">
+    <h3>⚙️ Configuration de la boutique</h3>
+
+    <div id="shopEditorList"></div>
+
+    <button onclick="addShopItem()">➕ Ajouter un objet</button><br><br>
+
+    <button onclick="saveShopItems()">💾 Sauvegarder</button>
+    <button onclick="closeShopEditor()">Fermer</button>
+</div>
+<div class="popup" id="weeklyPopup">
+    <h3>📅 Récompenses hebdomadaires</h3>
+
+    <p><b>Valeurs par élève :</b></p>
+
+    ❤️ Cœurs: <input type="number" id="weekHeartsValue" value="1"><br>
+    🔮 Mana: <input type="number" id="weekManaValue" value="1"><br>
+    🪙 Or: <input type="number" id="weekGoldValue" value="1"><br>
+
+    <hr>
+
+    <h4>❤️ Cœurs (jours)</h4>
+    <div id="weekHeartsDays"></div>
+
+    <h4>🔮 Mana (jours)</h4>
+    <div id="weekManaDays"></div>
+
+    <h4>🪙 Or (jours)</h4>
+    <div id="weekGoldDays"></div>
+
+    <br>
+    <button onclick="saveWeeklyRewards()">💾 Sauvegarder</button>
+    <button onclick="closeWeeklyRewards()">Fermer</button>
+</div>
 <script>
 /* ==================== INITIAL SETUP ==================== */
+const studentName = document.getElementById("studentName");
+const popup = document.getElementById("popup");
+const overlay = document.getElementById("overlay");
+const settingsMenu = document.getElementById("settingsMenu");
+const toolsMenu = document.getElementById("toolsMenu");
+const spellEditor = document.getElementById("spellEditor");
 const params = new URLSearchParams(window.location.search);
+const liveHearts = document.getElementById("liveHearts");
+const liveGold = document.getElementById("liveGold");
+const liveMana = document.getElementById("liveMana");
+const liveXP = document.getElementById("liveXP");
+const redemptionPopup = document.getElementById("redemptionPopup");
+const dayMapFR = {
+    sun: "Dimanche",
+    mon: "Lundi",
+    tue: "Mardi",
+    wed: "Mercredi",
+    thu: "Jeudi",
+    fri: "Vendredi",
+    sat: "Samedi"
+};
 let className = params.get("name") || "Default Class";
+
+let weeklyRewards = JSON.parse(
+    localStorage.getItem(className + "_weeklyRewards")
+) || {
+    hearts: { mon:false, tue:false, wed:false, thu:false, fri:false, sat:false, sun:false },
+    mana: { mon:false, tue:false, wed:false, thu:false, fri:false, sat:false, sun:false },
+    gold: { mon:false, tue:false, wed:false, thu:false, fri:false, sat:false, sun:false },
+    values: {
+        hearts: 1,
+        mana: 1,
+        gold: 1
+    }
+};
+let redemptionIndex = null;
 document.getElementById("classTitle").innerText = className;
 let selectedStudents = [];
-let raw = JSON.parse(
-    localStorage.getItem("class_"+className)
-);
+let rawData = localStorage.getItem("class_" + className);
+
+let raw = rawData ? JSON.parse(rawData) : null;
 
 let students = [];
 
-if(Array.isArray(raw)){
-    // Anciennes classes
+if (Array.isArray(raw)) {
     students = raw;
 }
-else if(raw){
-    // Nouvelles classes avec icône
-    students = raw.students || [];
+else if (raw && raw.students) {
+    students = raw.students;
 }
+else {
+    students = [];
+}
+
 let current = null;
 let muted = localStorage.getItem("muted")==="true";
 let pickedStudents = [];
+let today = new Date().toISOString().split("T")[0];
+let lastReset = localStorage.getItem("class_" + className + "_lastReset");
+
+if(lastReset !== today){
+
+    students.forEach(s=>{
+        s.absent = false;
+    });
+
+    localStorage.setItem("class_" + className + "_lastReset", today);
+    saveData();
+}
 let spells = JSON.parse(localStorage.getItem(className+"_spells")) || [
     {name:"Fireball", cost:1, damage:1},
     {name:"Ice", cost:2, damage:2}
 ];
+let shopItems = JSON.parse(localStorage.getItem(className+"_shop")) || [
+    {name:"Potion de soin", gold:5, mana:0, hearts:2},
+    {name:"Potion de mana", gold:5, manaGain:2, hearts:0}
+];
+
+function openWeeklyRewards(){
+
+   const days = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+
+    function build(containerId, type){
+
+        const div = document.getElementById(containerId);
+        div.innerHTML = "";
+
+        days.forEach(d=>{
+            div.innerHTML += `
+                <label style="display:block;">
+                    <input type="checkbox"
+                        ${weeklyRewards[type][d] ? "checked" : ""}
+                        onchange="weeklyRewards.${type}[d]=this.checked">
+                    ${d}
+                </label>
+            `;
+        });
+    }
+
+    build("weekHeartsDays","hearts");
+    build("weekManaDays","mana");
+    build("weekGoldDays","gold");
+
+    document.getElementById("weekHeartsValue").value = weeklyRewards.values.hearts;
+    document.getElementById("weekManaValue").value = weeklyRewards.values.mana;
+    document.getElementById("weekGoldValue").value = weeklyRewards.values.gold;
+
+    overlay.style.display = "block";
+    document.getElementById("weeklyPopup").style.display = "block";
+}
+
+function getDayKey(date = new Date()){
+    return ["sun","mon","tue","wed","thu","fri","sat"][date.getDay()];
+}
+
+function getDayLabel(key){
+    return dayMapFR[key];
+}
+
+function closeWeeklyRewards(){
+    document.getElementById("weeklyPopup").style.display = "none";
+    overlay.style.display = "none";
+}
+
+
+function saveWeeklyRewards(){
+
+    weeklyRewards.values.hearts =
+        parseInt(document.getElementById("weekHeartsValue").value) || 0;
+
+    weeklyRewards.values.mana =
+        parseInt(document.getElementById("weekManaValue").value) || 0;
+
+    weeklyRewards.values.gold =
+        parseInt(document.getElementById("weekGoldValue").value) || 0;
+
+    localStorage.setItem(
+        className + "_weeklyRewards",
+        JSON.stringify(weeklyRewards)
+    );
+
+    alert("Récompenses hebdomadaires sauvegardées !");
+    closeWeeklyRewards();
+}
+
+function applyWeeklyRewards(){
+
+    const dayMap = ["sun","mon","tue","wed","thu","fri","sat"];
+    const today = dayMap[new Date().getDay()];
+
+    students.forEach(s=>{
+
+        if(s.hearts === 0) return; // ❌ exclu
+
+        if(weeklyRewards.hearts[today]){
+            s.hearts = Math.min(10,
+                s.hearts + weeklyRewards.values.hearts
+            );
+        }
+
+        if(weeklyRewards.mana[today]){
+            s.mana = Math.min(5,
+                s.mana + weeklyRewards.values.mana
+            );
+        }
+
+        if(weeklyRewards.gold[today]){
+            s.gold += weeklyRewards.values.gold;
+        }
+    });
+
+    saveData();
+    render();
+}
+
+function getTodayKey(){
+    const dayMap = ["sun","mon","tue","wed","thu","fri","sat"];
+    return dayMap[new Date().getDay()];
+}
+
+function autoWeeklyRewards(){
+
+    const today = getTodayKey();
+    const lastRunKey = "weekly_" + className + "_" + today;
+    const lastRun = localStorage.getItem(lastRunKey);
+
+    // déjà appliqué aujourd’hui → on sort
+    if(lastRun === "done") return;
+
+    students.forEach(s=>{
+
+        if(s.hearts === 0) return;
+
+        if(weeklyRewards.hearts[today]){
+            s.hearts = Math.min(10, s.hearts + weeklyRewards.values.hearts);
+        }
+
+        if(weeklyRewards.mana[today]){
+            s.mana = Math.min(5, s.mana + weeklyRewards.values.mana);
+        }
+
+        if(weeklyRewards.gold[today]){
+            s.gold += weeklyRewards.values.gold;
+        }
+    });
+
+    localStorage.setItem(lastRunKey, "done");
+
+    saveData();
+    render();
+}
+
+function openShop(){
+    current = null; // IMPORTANT : mode boutique générale
+    renderShop();
+    overlay.style.display = "block";
+    document.getElementById("shopPopup").style.display = "block";
+}
+
+function closeShop(){
+    document.getElementById("shopPopup").style.display = "none";
+    overlay.style.display = "none";
+}
+
+function openShopEditor(){
+    
+    renderShopEditor();
+
+    overlay.style.display = "block";
+    document.getElementById("shopEditor").style.display = "block";
+}
+
+function closeShopEditor(){
+    document.getElementById("shopEditor").style.display = "none";
+    overlay.style.display = "none";
+}
+
+function renderShopEditor(){
+
+    const div = document.getElementById("shopEditorList");
+
+    if(!div){
+        console.error("shopEditorList introuvable");
+        return;
+    }
+
+    div.innerHTML = "";
+
+    shopItems.forEach((item, i)=>{
+
+        div.innerHTML += `
+        <div style="border:1px solid #a88443;padding:8px;margin-bottom:10px;border-radius:8px;">
+            
+            Nom:<br>
+            <input value="${item.name}"
+                onchange="shopItems[${i}].name=this.value"><br><br>
+
+            🪙 Or:<br>
+            <input type="number" value="${item.gold}"
+                onchange="shopItems[${i}].gold=parseInt(this.value)||0"><br><br>
+
+            🔮 Mana (+/-):<br>
+            <input type="number" value="${item.mana}"
+                onchange="shopItems[${i}].mana=parseInt(this.value)||0"><br><br>
+
+            ❤️ Cœurs (+/-):<br>
+            <input type="number" value="${item.hearts || 0}"
+                onchange="shopItems[${i}].hearts=parseInt(this.value)||0"><br><br>
+
+            <button onclick="removeShopItem(${i})">❌ Supprimer</button>
+        </div>
+        `;
+    });
+}
+function addShopItem(){
+    shopItems.push({
+        name:"Nouvel objet",
+        gold:0,
+        mana:0,
+        hearts:0
+    });
+
+    renderShopEditor();
+}
+
+function removeShopItem(i){
+    shopItems.splice(i,1);
+    renderShopEditor();
+}
+
+function saveShopItems(){
+    localStorage.setItem(className+"_shop", JSON.stringify(shopItems));
+    alert("Boutique sauvegardée !");
+    closeShopEditor();
+}
+
+function buyItem(item){
+
+    if(current === null){
+        alert("Sélectionne d'abord un élève !");
+        return;
+    }
+
+    const s = students[current];
+    if(!s){
+        alert("Erreur : élève introuvable");
+        return;
+    }
+
+    // 💡 CALCULS PROVISOIRES (test avant achat)
+    const newGold   = s.gold - item.gold;
+    const newMana   = s.mana + (item.mana || 0);
+    const newHearts = s.hearts + (item.hearts || 0);
+
+    // ❌ BLOQUAGE SI INSUFFISANT
+    if(newGold < 0){
+        alert("Pas assez d'or !");
+        return;
+    }
+
+    if(newMana < 0){
+        alert("Pas assez de mana !");
+        return;
+    }
+
+    if(newHearts < 0){
+        alert("Pas assez de cœurs !");
+        return;
+    }
+
+    // 💰 APPLICATION
+    s.gold = newGold;
+
+    s.mana = Math.max(0, Math.min(5, newMana));
+    s.hearts = Math.max(0, Math.min(10, newHearts));
+
+    // 🎯 effets spéciaux
+    if(item.effect === "heal"){
+        s.hearts = Math.min(10, s.hearts + 2);
+    }
+
+    if(item.effect === "mana"){
+        s.mana = Math.min(5, s.mana + 2);
+    }
+
+    saveData();
+    render();
+    closeShop();
+}
+function renderShop(){
+
+    const div = document.getElementById("shopList");
+    div.innerHTML = "";
+
+    if(shopItems.length === 0){
+        div.innerHTML = "<p>Aucun objet disponible</p>";
+        return;
+    }
+
+    shopItems.forEach((item, i)=>{
+
+        const btn = document.createElement("button");
+        btn.style.display = "block";
+        btn.style.width = "100%";
+        btn.style.margin = "5px 0";
+
+       btn.innerHTML = `
+    ${item.name}<br>
+    🪙 ${item.gold}
+    | 🔮 ${item.mana || 0}
+    | ❤️ ${item.hearts || 0}
+`;
+
+        btn.onclick = () => buyItem(item);
+
+        div.appendChild(btn);
+    });
+}
+
+
 
 function openSpellEditor(){
+
+    document.getElementById("toolsMenu").style.display = "none";
+
     renderSpells();
-    document.getElementById("overlay").style.display="block";
-    document.getElementById("spellEditor").style.display="block";
+
+    document.getElementById("overlay").style.display = "block";
+    document.getElementById("spellEditor").style.display = "block";
 }
 
 function closeSpellEditor(){
-    document.getElementById("spellEditor").style.display="none";
+
+    document.getElementById("spellEditor").style.display = "none";
+
+    const popup = document.getElementById("popup");
+    const settingsMenu = document.getElementById("settingsMenu");
+    const toolsMenu = document.getElementById("toolsMenu");
+    const overlay = document.getElementById("overlay");
+
+    const isPopupOpen = popup && popup.style.display === "block";
+    const isSettingsOpen = settingsMenu && settingsMenu.style.display === "block";
+    const isToolsOpen = toolsMenu && toolsMenu.style.display === "block";
+
+    if(!isPopupOpen && !isSettingsOpen && !isToolsOpen){
+        overlay.style.display = "none";
+    }
+}
+
+function openSpellShop(){
+    renderSpellShop();
+    overlay.style.display = "block";
+    document.getElementById("spellShopPopup").style.display = "block";
+}
+
+function closeSpellShop(){
+    document.getElementById("spellShopPopup").style.display = "none";
+    overlay.style.display = "none";
+}
+
+function renderSpellShop(){
+
+    const div = document.getElementById("spellShopList");
+    div.innerHTML = "";
+
+    const safeSpells = spells.filter(s => (s.damage || 0) <= 0);
+
+    if(safeSpells.length === 0){
+        div.innerHTML = "<p>Aucun sort disponible</p>";
+        return;
+    }
+
+    safeSpells.forEach((spell, i)=>{
+
+        const btn = document.createElement("button");
+        btn.style.display = "block";
+        btn.style.width = "100%";
+        btn.style.margin = "5px 0";
+
+        btn.innerText = `${spell.name} 🔮${spell.cost}`;
+
+        btn.onclick = () => buySpell(spell);
+
+        div.appendChild(btn);
+    });
+}
+
+function buySpell(spell){
+
+    const s = students[current];
+
+    if(s.mana < spell.cost){
+        alert("Pas assez de mana !");
+        return;
+    }
+
+    s.mana -= spell.cost;
+
+    // exemple : bonus non violent
+    if(spell.name.toLowerCase().includes("heal")){
+        s.hearts = Math.min(10, s.hearts + 1);
+    }
+
+    if(spell.name.toLowerCase().includes("shield")){
+        s.gold += 1; // ou buff fictif
+    }
+
+    updateLive();
+    saveData();
+    render();
+
+    
+    closeSpellShop();
+}
+
+function saveShop(){
+    localStorage.setItem(className+"_shop", JSON.stringify(shopItems));
+}
+
+function openStudentShop(index){
+    if(index === undefined || index === null) return;
+    current = index;
+    renderShop();
+    overlay.style.display = "block";
+    document.getElementById("shopPopup").style.display = "block";
 }
 
 function clearSelection(){
@@ -600,9 +1165,27 @@ function removeSpell(i){
 }
 
 function saveSpells(){
-    localStorage.setItem(className+"_spells", JSON.stringify(spells));
+    localStorage.setItem(
+        className+"_spells",
+        JSON.stringify(spells)
+    );
+
     alert("Sorts sauvegardés !");
+
+    closeSpellEditor();
 }
+
+function toggleAbsent(){
+
+    const s = students[current];
+
+    s.absent = !s.absent;
+
+    saveData();
+    render();
+    openPopup(current);
+}
+
 /* Ensure new properties exist */
 students.forEach((s,i)=>{
     if(s.hearts === undefined) s.hearts = 10;
@@ -610,12 +1193,112 @@ students.forEach((s,i)=>{
     if(s.gold === undefined) s.gold = 0;
     if(s.xp === undefined) s.xp = 0;
     if(s.level === undefined) s.level = 1;
+if(s.absent === undefined) s.absent = false;
+    if(s.image === undefined) s.image = "";
 
-    if(s.image === undefined){
-    s.image = "";
-}
+    if(s.gender === undefined) s.gender = "m";
+
+    if(s.useDefaultImage === undefined)
+        s.useDefaultImage = true;
+
+    if(s.defaultImage === undefined)
+        s.defaultImage = "";
 });
 
+students.forEach(s=>{
+
+    if(
+        !s.defaultImage ||
+        s.defaultImage.endsWith(".png")
+    ){
+        refreshDefaultImage(s);
+    }
+
+});
+
+function getEvolutionStage(level){
+
+    if(level >= 50) return 10;
+    if(level >= 45) return 9;
+    if(level >= 40) return 8;
+    if(level >= 35) return 7;
+    if(level >= 30) return 6;
+    if(level >= 25) return 5;
+    if(level >= 15) return 4;
+    if(level >= 10) return 3;
+    if(level >= 5) return 2;
+
+    return 1;
+}
+
+function generateDefaultImage(student){
+
+    const prefix =
+        student.gender === "f"
+        ? "f"
+        : "m";
+
+    const stage =
+        getEvolutionStage(student.level);
+
+    const variation =
+        Math.floor(Math.random()*4)+1;
+
+    return `images/${prefix}${stage}-${variation}.jpg`;
+}
+
+function refreshDefaultImage(student){
+
+    const oldImage = student.defaultImage || "";
+
+    let newImage = oldImage;
+
+    while(newImage === oldImage){
+
+        newImage = generateDefaultImage(student);
+
+    }
+
+    student.defaultImage = newImage;
+}
+
+function restoreDefaultImage(){
+
+    const s = students[current];
+
+    s.useDefaultImage = true;
+
+    refreshDefaultImage(s);
+
+    document.getElementById("previewImage").src =
+        s.defaultImage;
+
+    saveData();
+    render();
+}
+
+function setGender(g){
+
+    const s = students[current];
+
+    s.gender = g;
+
+    refreshDefaultImage(s);
+
+    s.useDefaultImage = true;
+
+    document.getElementById("previewImage").src =
+        s.defaultImage;
+
+    document.getElementById("genderDisplay").innerText =
+        g === "f"
+        ? "♀ Féminin"
+        : "♂ Masculin";
+
+    saveData();
+
+    render();
+}
 function toggleMute(){
     muted = document.getElementById("muteToggle").checked;
     localStorage.setItem("muted", muted);
@@ -625,21 +1308,14 @@ function toggleMute(){
 /* ==================== SAVE ==================== */
 function saveData(){
 
-    let raw = JSON.parse(
-        localStorage.getItem("class_"+className)
-    );
-
-    let icon = "🏫";
-
-    if(raw && !Array.isArray(raw)){
-        icon = raw.icon || "🏫";
-    }
+    const existingRaw = localStorage.getItem("class_"+className);
+    const existing = existingRaw ? JSON.parse(existingRaw) : {};
 
     localStorage.setItem(
         "class_"+className,
         JSON.stringify({
-            icon: icon,
-            students: students
+            icon: existing.icon || "🏫",
+            students: students || []
         })
     );
 }
@@ -655,7 +1331,8 @@ container.style.gridAutoRows = "auto";
 }
 
 function toggleSelect(i){
-    if(selectedStudents.includes(i)){
+if(students[i].absent) return;    
+if(selectedStudents.includes(i)){
         selectedStudents = selectedStudents.filter(x => x !== i);
     } else {
         selectedStudents.push(i);
@@ -674,34 +1351,65 @@ function render(){
 
     students.forEach((s,i)=>{
 
-    const imageName = s.image || "";
-    const xpPercent = (s.xp % 1000) / 10;
+    const imageName =
+    s.useDefaultImage
+        ? s.defaultImage
+        : s.image;
+    const xpPercent = Math.min(100, (s.xp / 1000) * 100);
 
     let rarity = "";
 
-    if(s.level >= 20){
-        rarity = "legendary";
-    }
-    else if(s.level >= 10){
-        rarity = "epic";
-    }
-    else if(s.level >= 5){
-        rarity = "rare";
-    }
+if(s.hearts === 0){
+    rarity = "dead";
+if(s.hearts === 0 && !s._redemptionShown){
+    s._redemptionShown = true;
+
+    setTimeout(()=>{
+        openRedemption(i);
+    }, 200);
+}
+}
+else if(s.level >= 20){
+    rarity = "legendary";
+}
+else if(s.level >= 10){
+    rarity = "epic";
+}
+else if(s.level >= 5){
+    rarity = "rare";
+}
 
     container.innerHTML += `
+
 <div class="card ${rarity} ${selectedStudents.includes(i) ? "selected" : ""} pop"
      id="card-${i}"
      onclick="openPopup(${i})">
 
+    
     <input type="checkbox"
         class="selectBox"
         ${selectedStudents.includes(i) ? "checked" : ""}
         onclick="toggleSelect(${i}); event.stopPropagation()">
 
-    <img class="studentPortrait" src="${imageName}">
+    <div style="position:relative;width:60px;height:60px;margin:auto;">
 
-    <div class="studentName">${s.name}</div>
+    <img
+        class="studentPortrait"
+        src="${imageName}"
+        style="${s.absent ? 'opacity:0.3;filter:grayscale(1);' : ''}"
+        onerror="this.src='images/m1-1.jpg'">
+
+    ${s.absent ? `
+        <img src="images/dragondodo.jpg"
+        style="position:absolute;top:0;left:0;width:60px;height:60px;border-radius:8px;">
+    ` : ""}
+
+</div>
+
+    <div class="studentName">
+    ${s.name}
+    ${s.gender === "f" ? "♀" : "♂"}
+</div>
 
     <div class="levelBadge">⭐ Niveau ${s.level}</div>
 
@@ -750,6 +1458,8 @@ reader.onload = function(event){
 
         students[current].image = compressed;
 
+students[current].useDefaultImage = false;
+
         saveData();
         render();
     };
@@ -758,12 +1468,66 @@ reader.onload = function(event){
     reader.readAsDataURL(file);
 });
 /* ==================== POPUP ==================== */
-function openPopup(index){
-    current = index;
-    const s = students[index];
+function openRedemption(index){
 
+    const s = students[index];
+    if(!s) return;
+
+    redemptionIndex = index;
+
+    document.getElementById("redemptionImage").src =
+        s.useDefaultImage ? s.defaultImage : s.image;
+
+    document.getElementById("redemptionName").innerText =
+        s.name;
+
+    overlay.style.display = "block";
+    redemptionPopup.style.display = "block";
+}
+
+function closeRedemption(){
+    redemptionPopup.style.display = "none";
+    overlay.style.display = "none";
+    redemptionIndex = null;
+}
+
+function redeemStudent(){
+
+    if(redemptionIndex === null) return;
+
+    const s = students[redemptionIndex];
+
+    s.hearts = 1;
+
+    saveData();
+    render();
+
+    closeRedemption();
+}
+
+function openPopup(index){
+
+    if(!students[index])
+        return;
+
+    const s = students[index];
+    current = index;
+
+    // 💀 CAS SPÉCIAL : RÉDEMPTION
+    if(s.hearts === 0){
+        openRedemption(index);
+        return;
+    }
+
+    // ✅ CAS NORMAL
     studentName.value = s.name;
-document.getElementById("previewImage").src = s.image;
+
+    document.getElementById("previewImage").src =
+        s.useDefaultImage ? s.defaultImage : s.image;
+
+    document.getElementById("genderDisplay").innerText =
+        s.gender === "f" ? "♀ Féminin" : "♂ Masculin";
+
     updateLive();
 
     document.getElementById("card-"+index).style.outline="3px solid orange";
@@ -826,7 +1590,10 @@ document.head.appendChild(style);
 function changeHearts(v){
     let s = students[current];
     let old = s.hearts;
-    s.hearts = Math.min(10, Math.max(0,s.hearts+v));
+
+    s.hearts = s.hearts + v;
+    s.hearts = Math.max(0, Math.min(10, s.hearts));
+
     if(s.hearts !== old) heartEffect(current, v>0);
     updateLive();
 }
@@ -882,17 +1649,29 @@ function addXP(amount,index){
     let s = students[index];
     s.xp += amount;
 
+    let leveledUp = false;
+
     xpEffect(index, amount);
 
     while(s.xp >= 1000){
         s.xp -= 1000;
         s.level++;
+        leveledUp = true;
 
-        levelUpEffect(index);
+        const oldStage = getEvolutionStage(s.level - 1);
+        const newStage = getEvolutionStage(s.level);
+
+        if(oldStage !== newStage){
+            refreshDefaultImage(s);
+        }
+
         if(!muted) levelSound.play();
     }
-}
 
+    if(leveledUp){
+        levelUpEffect(index);
+    }
+}
 
 function changeXP(){
     let amount = parseInt(document.getElementById("xpInput").value) || 0;
@@ -901,7 +1680,11 @@ function changeXP(){
     addXP(amount, current);
     updateLive();
     saveData();
-    render();
+
+    
+    setTimeout(() => {
+        render();
+    }, 250);
 }
 
 
@@ -919,6 +1702,19 @@ function levelUpEffect(index){
     },1500);
 }
 
+
+function selectAllStudents(){
+
+    selectedStudents = [];
+
+    students.forEach((s,i)=>{
+        if(!s.absent){
+            selectedStudents.push(i);
+        }
+    });
+
+    render();
+}
 
 
 /* ==================== SAVE ==================== */
@@ -938,15 +1734,16 @@ console.log("SAVE CLICKED");
 
 /* ==================== MULTI SELECT REWARD ==================== */
 function bulkReward(){
-    let selected = [...document.querySelectorAll(".selectBox:checked")];
+const selected = document.querySelectorAll(".selectBox:checked");
+    
 
     if(selected.length === 0){
         alert("Aucun élève sélectionné");
         return;
     }
 
-    overlay.style.display="block";
-    document.getElementById("bulkPopup").style.display="block";
+    overlay.style.display = "block";
+    document.getElementById("bulkPopup").style.display = "block";
 }
 
 function applyBulkReward(){
@@ -981,21 +1778,35 @@ function applyBulkReward(){
 
 /* ==================== RESET & DELETE FIX ==================== */
 function resetClass(){
+
     if(confirm("Réinitialiser les statistiques de la classe ?")){
-        students.forEach(s=>{
+
+        students.forEach((s)=>{
+
             s.hearts = 10;
             s.mana = 5;
             s.gold = 0;
             s.xp = 0;
             s.level = 1;
+
+            if(s.image === undefined)
+                s.image = "";
+
+            if(s.gender === undefined)
+                s.gender = "m";
+
+            if(s.useDefaultImage === undefined)
+                s.useDefaultImage = true;
+
+            refreshDefaultImage(s);
+
         });
+
         saveData();
         render();
         closeAll();
     }
 }
-
-
 
 function deleteClass(){
     if(confirm("Delete this class permanently?")){
@@ -1013,15 +1824,24 @@ function goBack(){
 function openSettings(){ overlay.style.display="block"; settingsMenu.style.display="block"; }
 function openTools(){ overlay.style.display="block"; toolsMenu.style.display="block"; }
 function closeAll(){
-    overlay.style.display="none";
-    popup.style.display="none";
-    settingsMenu.style.display="none";
-    toolsMenu.style.display="none";
-    document.getElementById("bulkPopup").style.display="none";
-    document.getElementById("groupPopup").style.display="none";
-   
-saveData();
-render();
+
+    overlay.style.display = "none";
+
+    popup.style.display = "none";
+
+    settingsMenu.style.display = "none";
+
+    toolsMenu.style.display = "none";
+
+    document.getElementById("bulkPopup").style.display = "none";
+
+    document.getElementById("groupPopup").style.display = "none";
+
+    document.getElementById("spellEditor").style.display = "none";
+document.getElementById("importFile").value = "";
+    saveData();
+
+    render();
 }
 
 
@@ -1039,7 +1859,7 @@ function pickRandomStudent(){
         return;
     }
 
-    let available = students.map((s,i)=>i);
+    let available = students.map((s,i)=>i).filter(i => !students[i].absent);
 
     if(document.getElementById("noRepeatToggle").checked){
         available = available.filter(i => !pickedStudents.includes(i));
@@ -1090,8 +1910,9 @@ function makeGroups(){
     if(groupSize > 6) groupSize = 6;
 
     let shuffled = [...students]
-        .map((s,i)=>({student:s,index:i}))
-        .sort(()=>Math.random()-0.5);
+    .map((s,i)=>({student:s,index:i}))
+    .filter(x => !x.student.absent)
+    .sort(()=>Math.random()-0.5);
 
     let groups = [];
     let usedIndexes = [];
@@ -1185,7 +2006,10 @@ function goToBoss(){
 
 // Export class to JSON file
 function exportClass(){
-    const data = JSON.stringify(students, null, 2);
+    const data = JSON.stringify({
+    icon: "🏫",
+    students: students
+}, null, 2);
     const blob = new Blob([data], {type:"application/json"});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -1199,37 +2023,63 @@ function importClass(event){
     if(!file) return;
 
     const reader = new FileReader();
+
     reader.onload = function(e){
-        try {
-            const importedStudents = JSON.parse(e.target.result);
-            if(!Array.isArray(importedStudents)){
-                alert("Format de fichier invalide !");
-                return;
-            }
-            students = importedStudents;
 
-students.forEach((s,i)=>{
-    if(s.hearts === undefined) s.hearts = 10;
-    if(s.mana === undefined) s.mana = 5;
-    if(s.gold === undefined) s.gold = 0;
-    if(s.xp === undefined) s.xp = 0;
-    if(s.level === undefined) s.level = 1;
+        try{
 
-    if(s.image === undefined){
-    s.image = "";
+            const data = JSON.parse(e.target.result);
+
+if(!data.students || !Array.isArray(data.students)){
+    alert("Format de fichier invalide !");
+    return;
 }
-});
+
+students = data.students;
+
+            students.forEach((s,i)=>{
+
+                if(s.hearts === undefined) s.hearts = 10;
+                if(s.mana === undefined) s.mana = 5;
+                if(s.gold === undefined) s.gold = 0;
+                if(s.xp === undefined) s.xp = 0;
+                if(s.level === undefined) s.level = 1;
+
+                if(s.image === undefined)
+                    s.image = "";
+
+                if(s.gender === undefined)
+                    s.gender = "m";
+
+                if(s.useDefaultImage === undefined)
+                    s.useDefaultImage = true;
+
+                if(s.defaultImage === undefined ||
+                   s.defaultImage === "")
+                {
+                    refreshDefaultImage(s);
+                }
+
+            });
+
             saveData();
             render();
 
             alert("Classe importée avec succès !");
-        } catch(err){
-            alert("Erreur lors de la lecture du fichier : " + err);
+
+        }
+        catch(err){
+
+            alert(
+                "Erreur lors de la lecture du fichier : "
+                + err
+            );
+
         }
     };
+
     reader.readAsText(file);
 }
-
 function renameClass(){
 
     const newName = prompt(
@@ -1296,29 +2146,168 @@ function renameClass(){
     alert("Classe renommée avec succès !");
 }
 
-/* ==================== PAGE REFRESH ==================== */
-let countdown=300;
-const timerDisplay=document.createElement("div");
-timerDisplay.style.position="fixed";
-timerDisplay.style.bottom="10px";
-timerDisplay.style.right="15px";
-timerDisplay.style.background="#222";
-timerDisplay.style.color="white";
-timerDisplay.style.padding="6px 12px";
-timerDisplay.style.borderRadius="8px";
-timerDisplay.innerText="300s";
+function getTodayDate(){
+    return new Date().toISOString().split("T")[0];
+}
+
+function applyMissingDailyRewards(){
+
+    const lastDateKey = "weekly_lastDate_" + className;
+    const lastDateStr = localStorage.getItem(lastDateKey);
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    let lastDate;
+
+    if(lastDateStr){
+        lastDate = new Date(lastDateStr);
+        lastDate.setHours(0,0,0,0);
+    } else {
+        // première visite → on considère aujourd’hui uniquement
+        localStorage.setItem(lastDateKey, today.toISOString());
+        return;
+    }
+
+    // différence en jours
+    const diffTime = today - lastDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if(diffDays <= 0) return;
+
+    // appliquer chaque jour manqué
+    for(let i = 0; i < diffDays; i++){
+
+        const tempDate = new Date(lastDate);
+        tempDate.setDate(tempDate.getDate() + i + 1);
+
+        applyRewardsForDate(tempDate);
+    }
+
+    // mettre à jour la dernière date
+    localStorage.setItem(lastDateKey, today.toISOString());
+
+    saveData();
+    render();
+}
+
+function applyRewardsForDate(date){
+
+   const dayMap = ["sun","mon","tue","wed","thu","fri","sat"];
+    const day = dayMap[date.getDay()];
+
+    students.forEach(s=>{
+
+        if(s.hearts === 0) return;
+
+        if(weeklyRewards.hearts[day]){
+            s.hearts = Math.min(10, s.hearts + weeklyRewards.values.hearts);
+        }
+
+        if(weeklyRewards.mana[day]){
+            s.mana = Math.min(5, s.mana + weeklyRewards.values.mana);
+        }
+
+        if(weeklyRewards.gold[day]){
+            s.gold += weeklyRewards.values.gold;
+        }
+    });
+}
+
+function heartbeat(){
+    saveData();
+    render();
+}
+
+
+
+/* ==================== AUTO-SYNC ==================== */
+
+let countdown = 300;
+
+const timerDisplay = document.createElement("div");
+
+timerDisplay.style.position = "fixed";
+timerDisplay.style.bottom = "10px";
+timerDisplay.style.right = "15px";
+timerDisplay.style.background = "#222";
+timerDisplay.style.color = "white";
+timerDisplay.style.padding = "6px 12px";
+timerDisplay.style.borderRadius = "8px";
+timerDisplay.style.zIndex = "9999";
+
 document.body.appendChild(timerDisplay);
 
-setInterval(()=>{
-    countdown--;
-    timerDisplay.innerText=""+countdown+"s";
-    if(countdown<=0 && popup.style.display==="none"){
-        location.reload();
-    } else if(countdown<=0){
-        countdown=300;
+function syncClassData(){
+
+    const rawData =
+        localStorage.getItem("class_" + className);
+
+    if(!rawData) return;
+
+    const raw = JSON.parse(rawData);
+
+    if(raw.students){
+        students = raw.students;
+        render();
     }
+}
+
+setInterval(()=>{
+
+    countdown--;
+
+    const minutes =
+        Math.floor(countdown / 60);
+
+    const seconds =
+        countdown % 60;
+
+    timerDisplay.innerText =
+        `🔄 ${minutes}:${seconds
+            .toString()
+            .padStart(2,"0")}`;
+
+    if(countdown <= 0){
+
+        // si popup ouverte -> on reporte
+        if(
+            popup.style.display === "block" ||
+            redemptionPopup.style.display === "block" ||
+            settingsMenu.style.display === "block" ||
+            toolsMenu.style.display === "block"
+        ){
+            countdown = 60;
+            return;
+        }
+
+        syncClassData();
+
+        countdown = 300;
+    }
+
 },1000);
 
+setInterval(heartbeat,300000);
+
+window.addEventListener("storage", function(e){
+
+    if(e.key === "class_" + className){
+
+        const raw = JSON.parse(e.newValue);
+
+        if(raw && raw.students){
+
+            students = raw.students;
+
+            render();
+        }
+    }
+});
+
+applyMissingDailyRewards();
+saveData();
+render();
 </script>
 <div id="levelBanner">NIVEAU SUPÉRIEUR !</div>
 
