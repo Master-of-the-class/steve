@@ -5,35 +5,16 @@
 <title>Classe</title>
 <style>
 body{
-    font-family: "Trebuchet MS", serif;
+    font-family: Arial;
     margin:0;
-
-    background:
-        linear-gradient(
-            rgba(0,0,0,.15),
-            rgba(0,0,0,.15)
-        ),
-        radial-gradient(
-            circle at center,
-            #6d5534,
-            #3e2e1d
-        );
-
+    background:#f0f0f0;
     overflow:auto;
 }
 
 /* Top Bar */
 .topbar{
-    background:
-        linear-gradient(
-            #4d371f,
-            #2d1f10
-        );
-
-    color:#f7e9c0;
-
-    border-bottom:
-        3px solid #a88443;
+    background:#333;
+    color:white;
     padding:10px;
     display:flex;
     justify-content:space-between;
@@ -46,90 +27,29 @@ button{
 }
 
 /* Responsive Grid */
-.container {
-    display: grid;
-    gap: 10px;
-    padding: 10px;
-    height: calc(100vh - 60px);
-    overflow-y: auto;
-
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    max-width: 1200px;
-    margin: 0 auto;
+.container{
+    display:grid;
+    gap:10px;
+    padding:10px;
+    height:calc(100vh - 60px);
+    overflow-y:auto;
 }
 
 /* Student Card */
 .card{
-    background:linear-gradient(
-        180deg,
-        #f5e8c8,
-        #e4cf9a
-    );
-
-    border:2px solid #8b6b3f;
-    border-radius:14px;
-backdrop-filter: blur(2px);
-    border-radius: 16px;
-    padding:6px;
-
+    background:white;
+	min-height:220px;
+    border-radius:10px;
+    box-shadow:0 0 5px rgba(0,0,0,0.2);
+    text-align:center;
     display:flex;
     flex-direction:column;
-
-    gap:4px;
-
+    justify-content:space-between;
+    padding:5px;
     cursor:pointer;
     position:relative;
- position: relative;
-    overflow: hidden;
-    box-shadow:
-        0 4px 12px rgba(0,0,0,.25);
-
-    transition:
-        transform .2s,
-        box-shadow .2s;
-aspect-ratio: 3 / 4;
-transition: transform 0.2s ease, box-shadow 0.2s ease;
-    min-height:150px;
 }
 
-.card:hover {
-    transform: translateY(-6px) scale(1.03);
-
-    box-shadow:
-        0 0 15px rgba(255, 215, 0, 0.35),
-        0 12px 25px rgba(0, 0, 0, 0.4);
-}
-
-.card::before {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    border-radius: 14px;
-    background: linear-gradient(
-        120deg,
-        transparent,
-        rgba(255, 215, 0, 0.4),
-        transparent
-    );
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.card:hover::before {
-    opacity: 1;
-    animation: shine 1.2s linear infinite;
-}
-
-@keyframes shine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
-
-.card.selected {
-    outline: 3px solid gold;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-    transform: scale(1.02);
-}
 .selectBox{
     position:absolute;
     top:8px;
@@ -138,16 +58,11 @@ transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor:pointer;
 }
 
-
-
-.studentPortrait{
-    width:60px;
-    height:60px;
+.card img{
+    width:100%;
+    height:90px;
     object-fit:cover;
     border-radius:8px;
-    border:2px solid #8b6b3f;
-    display:block;
-    margin:auto;
 }
 
 .stats{
@@ -166,109 +81,21 @@ transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Popup + Settings */
-.popup, .settings {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.popup, .settings{
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 15px black;
+    z-index:1000;
+    width:300px;
 
-    width: 340px;
-    max-height: 85vh;
-    overflow-y: auto;
-
-    padding: 18px 18px;
-
-    border-radius: 16px;
-
-    background: linear-gradient(
-        180deg,
-        #2b1d10,
-        #3b2a18
-    );
-
-    color: #f7e9c0;
-
-    border: 2px solid #a88443;
-
-    box-shadow:
-        0 15px 40px rgba(0,0,0,0.6),
-        0 0 25px rgba(255, 215, 0, 0.15);
-
-    z-index: 1000;
-
-    animation: popupIn 0.2s ease-out;
-}
-@keyframes popupIn {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -48%) scale(0.95);
-    }
-    100% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
-
-.popup h3 {
-    margin-top: 0;
-    margin-bottom: 12px;
-
-    font-size: 18px;
-    color: #f7e9c0;
-
-    text-align: center;
-
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-}
-
-
-.popup input {
-    width: 100%;
-    padding: 6px 8px;
-
-    margin-top: 4px;
-    margin-bottom: 10px;
-
-    border-radius: 8px;
-    border: 1px solid #a88443;
-
-    background: #1f140c;
-    color: #f7e9c0;
-
-    outline: none;
-}
-
-
-.popup button {
-    padding: 6px 10px;
-    margin: 3px 2px;
-
-    border: none;
-    border-radius: 8px;
-
-    background: #6d4c28;
-    color: #f7e9c0;
-
-    cursor: pointer;
-
-    transition: 0.15s;
-}
-
-
-.popup span {
-    color: #ffd98a;
-    font-weight: bold;
-}
-
-.popup button:hover {
-    background: #8b5e34;
-    transform: translateY(-1px);
-}
-
-.popup input:focus {
-    border-color: gold;
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    max-height:85vh;
+    overflow-y:auto;
 }
 
 .overlay{
@@ -294,105 +121,6 @@ transition: transform 0.2s ease, box-shadow 0.2s ease;
     align-items:center;
     gap:6px;
 }	
-
-.studentName{
-    font-weight:bold;
-    font-size:14px;
-    color:#5a2d00;
-}
-
-.levelBadge{
-    color:#785100;
-    font-size:12px;
-}
-
-.xpBar{
-    height:10px;
-    background:#cfc4a0;
-    border-radius:20px;
-    overflow:hidden;
-}
-
-.xpFill{
-    height:100%;
-
-    background:
-        linear-gradient(
-            90deg,
-            #3d6df5,
-            #8a42ff
-        );
-
-    box-shadow:
-        0 0 10px #8a42ff;
-}
-
-.statsCompact{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:4px;
-
-    text-align:center;
-
-    font-size:14px;
-}
-
-.actionBtn{
-    width:100%;
-    padding:8px;
-
-    border:none;
-
-    border-radius:8px;
-
-    background:#6d4c28;
-
-    color:white;
-
-    font-weight:bold;
-}
-
-.card.rare{
-    border:3px solid #3498db;
-box-shadow: 0 0 10px rgba(52, 152, 219, 0.4);
-}
-
-.card.epic{
-    border:3px solid #9b59b6;
-box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
-}
-
-.card.legendary{
-    border:3px solid gold;
- box-shadow:
-        0 0 15px rgba(255, 215, 0, 0.6),
-        0 0 30px rgba(255, 215, 0, 0.3);
-}
-
-.card.legendary::before{
-    content:"👑";
-    position:absolute;
-    top:5px;
-    right:8px;
-    font-size:20px;
-}
-
-@keyframes cardPop {
-    0% {
-        opacity: 0;
-        transform: scale(0.85) translateY(10px);
-        filter: blur(4px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-        filter: blur(0);
-    }
-}
-
-.card.pop {
-    animation: cardPop 0.25s ease-out;
-}
 	
 #levelBanner{
     position:fixed;
@@ -534,21 +262,8 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 const params = new URLSearchParams(window.location.search);
 let className = params.get("name") || "Default Class";
 document.getElementById("classTitle").innerText = className;
-let selectedStudents = [];
-let raw = JSON.parse(
-    localStorage.getItem("class_"+className)
-);
 
-let students = [];
-
-if(Array.isArray(raw)){
-    // Anciennes classes
-    students = raw;
-}
-else if(raw){
-    // Nouvelles classes avec icône
-    students = raw.students || [];
-}
+let students = JSON.parse(localStorage.getItem("class_"+className)) || [];
 let current = null;
 let muted = localStorage.getItem("muted")==="true";
 let pickedStudents = [];
@@ -565,11 +280,6 @@ function openSpellEditor(){
 
 function closeSpellEditor(){
     document.getElementById("spellEditor").style.display="none";
-}
-
-function clearSelection(){
-    selectedStudents = [];
-    render();
 }
 
 function renderSpells(){
@@ -611,8 +321,8 @@ students.forEach((s,i)=>{
     if(s.level === undefined) s.level = 1;
 
     if(s.image === undefined){
-    s.image = "";
-}
+        s.image = "student"+(i+1)+".png";
+    }
 });
 
 function toggleMute(){
@@ -623,24 +333,7 @@ function toggleMute(){
 
 /* ==================== SAVE ==================== */
 function saveData(){
-
-    let raw = JSON.parse(
-        localStorage.getItem("class_"+className)
-    );
-
-    let icon = "🏫";
-
-    if(raw && !Array.isArray(raw)){
-        icon = raw.icon || "🏫";
-    }
-
-    localStorage.setItem(
-        "class_"+className,
-        JSON.stringify({
-            icon: icon,
-            students: students
-        })
-    );
+    localStorage.setItem("class_"+className, JSON.stringify(students));
 }
 
 /* ==================== GRID ==================== */
@@ -648,22 +341,9 @@ function updateGrid(){
     const container = document.getElementById("students");
 
     container.style.gridTemplateColumns =
-"repeat(auto-fit, minmax(140px, 1fr))";
+    "repeat(auto-fit, minmax(160px, 1fr))";
 
-container.style.gridAutoRows = "auto";
-}
-
-function toggleSelect(i){
-    if(selectedStudents.includes(i)){
-        selectedStudents = selectedStudents.filter(x => x !== i);
-    } else {
-        selectedStudents.push(i);
-    }
-
-    const card = document.getElementById("card-" + i);
-    if(card){
-        card.classList.toggle("selected");
-    }
+    container.style.gridAutoRows = "160px";
 }
 
 /* ==================== RENDER ==================== */
@@ -673,48 +353,55 @@ function render(){
 
     students.forEach((s,i)=>{
 
-    const imageName = s.image || "";
-    const xpPercent = (s.xp % 1000) / 10;
+        const imageName = s.image || ("student"+(i+1)+".png");
+        const xpPercent = (s.xp % 1000) / 10;
 
-    let rarity = "";
+        container.innerHTML += `
+        <div class="card" id="card-${i}" onclick="openPopup(${i})">
 
-    if(s.level >= 20){
-        rarity = "legendary";
-    }
-    else if(s.level >= 10){
-        rarity = "epic";
-    }
-    else if(s.level >= 5){
-        rarity = "rare";
-    }
+            <input type="checkbox" class="selectBox" value="${i}" onclick="event.stopPropagation()">
+            <img src="${imageName}">
+            <strong>${s.name} - Level: ${s.level}</strong>
 
-    container.innerHTML += `
-<div class="card ${rarity} ${selectedStudents.includes(i) ? "selected" : ""} pop"
-     id="card-${i}"
-     onclick="openPopup(${i})">
+            <div style="height:8px;background:#ddd;border-radius:5px;margin:4px 0;">
+                <div style="height:100%;width:${xpPercent}%;background:#4caf50;border-radius:5px;"></div>
+            </div>
 
-    <input type="checkbox"
-        class="selectBox"
-        ${selectedStudents.includes(i) ? "checked" : ""}
-        onclick="toggleSelect(${i}); event.stopPropagation()">
+           <div class="stats">
+<div class="statRow">
+    <div>❤️ ${s.hearts}/10</div>
 
-    <img class="studentPortrait" src="${imageName}">
-
-    <div class="studentName">${s.name}</div>
-
-    <div class="levelBadge">⭐ Niveau ${s.level}</div>
-
-    <div class="xpBar">
-        <div class="xpFill" style="width:${xpPercent}%"></div>
-    </div>
-
-    <div class="statsCompact">
-        <div>❤️ ${s.hearts}</div>
-        <div>🔮 ${s.mana}</div>
-        <div>🪙 ${s.gold}</div>
+    <div class="btnRow">
+        <button class="miniBtn" onclick="event.stopPropagation(); quickHeart(${i},1)">+</button>
+        <button class="miniBtn" onclick="event.stopPropagation(); quickHeart(${i},-1)">-</button>
     </div>
 </div>
-`;
+
+			
+<div class="statRow">
+    <div>🪙 ${s.gold}/10</div>
+
+    <div class="btnRow">
+        <button class="miniBtn" onclick="event.stopPropagation(); quickGold(${i},1)">+</button>
+        <button class="miniBtn" onclick="event.stopPropagation(); quickGold(${i},-1)">-</button>
+    </div>
+</div>
+
+			
+<div class="statRow">
+    <div>🔮 ${s.mana}/10</div>
+
+    <div class="btnRow">
+        <button class="miniBtn" onclick="event.stopPropagation(); quickMana(${i},1)">+</button>
+        <button class="miniBtn" onclick="event.stopPropagation(); quickMana(${i},-1)">-</button>
+    </div>
+</div>
+
+			⭐
+			<button onclick="event.stopPropagation(); quickXP(${i},150)">+150 XP</button>
+			</div>
+        </div>
+        `;
     });
 
     updateGrid();
@@ -728,31 +415,18 @@ imageInput.addEventListener("change", function(e){
     const file = e.target.files[0];
     if(!file || current === null) return;
 
-   const reader = new FileReader();
+    const reader = new FileReader();
 
-reader.onload = function(event){
-    // resize + compression simple
-    const img = new Image();
-    img.src = event.target.result;
+    reader.onload = function(event){
 
-    img.onload = function(){
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+        students[current].image = event.target.result;
 
-        const maxSize = 120;
-        canvas.width = maxSize;
-        canvas.height = maxSize;
-
-        ctx.drawImage(img, 0, 0, maxSize, maxSize);
-
-        const compressed = canvas.toDataURL("image/jpeg", 0.6);
-
-        students[current].image = compressed;
+        document.getElementById("previewImage").src =
+            event.target.result;
 
         saveData();
         render();
     };
-};
 
     reader.readAsDataURL(file);
 });
@@ -922,18 +596,11 @@ function levelUpEffect(index){
 
 /* ==================== SAVE ==================== */
 function saveAndClose(){
-console.log("SAVE CLICKED");
-    if(current === null) return;
-
-    const nameInput = document.getElementById("studentName");
-
-    students[current].name = nameInput.value;
-
+    students[current].name = studentName.value;
     saveData();
     render();
-    closeAll(); // IMPORTANT : pas closeAllWithoutSave
+    closeAll();
 }
-
 
 /* ==================== MULTI SELECT REWARD ==================== */
 function bulkReward(){
@@ -949,18 +616,15 @@ function bulkReward(){
 }
 
 function applyBulkReward(){
-
-    if(selectedStudents.length === 0){
-        alert("Aucun élève sélectionné");
-        return;
-    }
+    let selected = [...document.querySelectorAll(".selectBox:checked")]
+                    .map(cb => parseInt(cb.value));
 
     let hearts = parseInt(document.getElementById("bulkHearts").value) || 0;
     let mana   = parseInt(document.getElementById("bulkMana").value) || 0;
     let gold   = parseInt(document.getElementById("bulkGold").value) || 0;
     let xp     = parseInt(document.getElementById("bulkXP").value) || 0;
 
-    selectedStudents.forEach(i=>{
+    selected.forEach(i=>{
         students[i].hearts = Math.min(10, Math.max(0, students[i].hearts + hearts));
         students[i].mana   = Math.min(5, Math.max(0, students[i].mana + mana));
         students[i].gold   = Math.max(0, students[i].gold + gold);
@@ -973,8 +637,11 @@ function applyBulkReward(){
     saveData();
     render();
 
-    selectedStudents = []; // reset propre
+    // clear selection
+    document.querySelectorAll(".selectBox").forEach(cb=>cb.checked=false);
+
     closeAll();
+
 }
 
 
@@ -1018,7 +685,7 @@ function closeAll(){
     toolsMenu.style.display="none";
     document.getElementById("bulkPopup").style.display="none";
     document.getElementById("groupPopup").style.display="none";
-   
+    document.querySelectorAll(".card").forEach(c=>c.style.outline="none");
 saveData();
 render();
 }
@@ -1026,7 +693,7 @@ render();
 
 /* Add bulk button to Tools menu */
 const bulkBtn=document.createElement("button");
-bulkBtn.innerText="🎁 Récompense de groupe";
+bulkBtn.innerText="🎁 Bulk Reward";
 bulkBtn.onclick=bulkReward;
 document.getElementById("toolsMenu").appendChild(bulkBtn);
 
@@ -1215,12 +882,12 @@ students.forEach((s,i)=>{
     if(s.level === undefined) s.level = 1;
 
     if(s.image === undefined){
-    s.image = "";
-}
+        s.image = "student"+(i+1)+".png";
+    }
 });
             saveData();
             render();
-
+className = newName;
             alert("Classe importée avec succès !");
         } catch(err){
             alert("Erreur lors de la lecture du fichier : " + err);
@@ -1230,70 +897,22 @@ students.forEach((s,i)=>{
 }
 
 function renameClass(){
-
-    const newName = prompt(
-        "Entrez le nouveau nom de la classe :",
-        className
-    );
-
-    if(!newName) return;
+    const newName = prompt("Entrez le nouveau nom de la classe :", className);
+    if(!newName) return; // canceled or empty
 
     if(localStorage.getItem("class_" + newName)){
         alert("Une classe avec ce nom existe déjà !");
         return;
     }
 
-    let raw = JSON.parse(
-        localStorage.getItem("class_" + className)
-    );
-
-    let icon = "🏫";
-
-    if(raw && !Array.isArray(raw)){
-        icon = raw.icon || "🏫";
-    }
-
-    localStorage.setItem(
-        "class_" + newName,
-        JSON.stringify({
-            icon: icon,
-            students: students
-        })
-    );
-
-    // déplacer aussi les sorts
-    let oldSpells =
-        localStorage.getItem(className + "_spells");
-
-    if(oldSpells){
-        localStorage.setItem(
-            newName + "_spells",
-            oldSpells
-        );
-
-        localStorage.removeItem(
-            className + "_spells"
-        );
-    }
-
-    localStorage.removeItem(
-        "class_" + className
-    );
-
-    className = newName;
-
-    document.getElementById("classTitle").innerText =
-        newName;
-
-    window.history.replaceState(
-        {},
-        "",
-        "class.html?name=" +
-        encodeURIComponent(newName)
-    );
+    localStorage.setItem("class_" + newName, JSON.stringify(students));
+    localStorage.removeItem("class_" + className);
+    window.history.replaceState({}, '', "class.html?name=" + encodeURIComponent(newName));
+    document.getElementById("classTitle").innerText = newName;
 
     alert("Classe renommée avec succès !");
 }
+
 
 /* ==================== PAGE REFRESH ==================== */
 let countdown=300;
