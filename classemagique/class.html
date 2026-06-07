@@ -421,6 +421,21 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 
 <div class="topbar">
     <div id="classTitle"></div>
+
+   <div id="syncTimer"
+style="
+background:#2d1f10;
+border:1px solid #a88443;
+padding:4px 10px;
+border-radius:8px;
+color:#ffd98a;
+font-weight:bold;
+margin-left:auto;
+margin-right:15px;
+">
+🔄 5:00
+</div>
+
     <div>
 <button onclick="selectAllStudents()">✅ Tous</button>
 		<button onclick="goToBoss()">👹 Combat Boss</button>
@@ -487,6 +502,11 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 	<input type="number" id="xpInput" placeholder="Ajouter XP">
 	<button onclick="changeXP()">Appliquer</button>
 <button onclick="toggleAbsent()">🚫 Absent / Présent</button>
+
+<button onclick="openRecurringRewards()">
+📅 Récompenses automatiques
+</button>
+
 <br><br>
 	
 
@@ -521,8 +541,64 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
     <h3>Paramètres</h3>
     <button onclick="resetClass()">Réinitialiser la classe</button><br><br>
     <button onclick="deleteClass()">Supprimer la classe</button><br><br>
-    <button onclick="closeAll()">Fermer</button>
+<hr>
+
+<h4>👨‍🎓 Gestion des élèves</h4>
+
+<button onclick="addStudent()">➕ Ajouter un élève</button>
+
+
+<button onclick="openLevelRewards()">
+⭐ Gestion des niveaux
+</button>
+<br><br>
+
+<input
+    type="text"
+    id="studentToDelete"
+    placeholder="Nom de l'élève">
+
+<button onclick="deleteStudentByName()">
+❌ Supprimer l'élève
+</button>
+
+<br><br>
+    
 	<button onclick="renameClass()">✏️ Renommer la classe</button><br><br>
+<hr style="border:1px solid #a88443;">
+
+<h4>🔄 Synchronisation automatique</h4>
+
+<label>
+Temps entre les synchronisations :
+</label>
+
+<input
+    type="number"
+    id="syncMinutes"
+    min="1"
+    max="60"
+    value="5"
+    style="width:80px;">
+
+minutes
+
+<br><br>
+
+<label>
+    <input
+        type="checkbox"
+        id="disableSync">
+    Désactiver la synchronisation automatique
+</label>
+
+<br><br>
+
+<button onclick="saveSyncSettings()">
+💾 Sauvegarder les réglages
+</button>
+
+
 <br><br>
 <hr style="border:1px solid #a88443;">
 
@@ -535,6 +611,7 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
 <button onclick="document.getElementById('importFile').click()">
 📂 Importer la classe
 </button>
+
 </div>
 
 <!-- Tools Menu -->
@@ -644,6 +721,77 @@ box-shadow: 0 0 12px rgba(155, 89, 182, 0.5);
     <button onclick="saveWeeklyRewards()">💾 Sauvegarder</button>
     <button onclick="closeWeeklyRewards()">Fermer</button>
 </div>
+<div class="popup" id="levelRewardsPopup">
+    <h3>⭐ Récompenses de niveau</h3>
+
+    🪙 Or gagné par niveau :
+    <input type="number" id="levelGold" min="0">
+
+    🔮 Mana gagné par niveau :
+    <input type="number" id="levelMana" min="0">
+
+    ❤️ Cœurs gagnés par niveau :
+    <input type="number" id="levelHearts" min="0">
+
+    <br><br>
+
+    <button onclick="saveLevelRewards()">
+        💾 Sauvegarder
+    </button>
+
+    <button onclick="closeLevelRewards()">
+        Fermer
+    </button>
+</div>
+<div class="popup" id="studentRecurringPopup">
+
+<h3>📅 Récompenses automatiques</h3>
+
+<h4>❤️ Cœurs</h4>
+
+Lundi <input type="number" id="rh_mon"><br>
+Mardi <input type="number" id="rh_tue"><br>
+Mercredi <input type="number" id="rh_wed"><br>
+Jeudi <input type="number" id="rh_thu"><br>
+Vendredi <input type="number" id="rh_fri"><br>
+Samedi <input type="number" id="rh_sat"><br>
+Dimanche <input type="number" id="rh_sun"><br>
+
+<hr>
+
+<h4>🔮 Mana</h4>
+
+Lundi <input type="number" id="rm_mon"><br>
+Mardi <input type="number" id="rm_tue"><br>
+Mercredi <input type="number" id="rm_wed"><br>
+Jeudi <input type="number" id="rm_thu"><br>
+Vendredi <input type="number" id="rm_fri"><br>
+Samedi <input type="number" id="rm_sat"><br>
+Dimanche <input type="number" id="rm_sun"><br>
+
+<hr>
+
+<h4>🪙 Or</h4>
+
+Lundi <input type="number" id="rg_mon"><br>
+Mardi <input type="number" id="rg_tue"><br>
+Mercredi <input type="number" id="rg_wed"><br>
+Jeudi <input type="number" id="rg_thu"><br>
+Vendredi <input type="number" id="rg_fri"><br>
+Samedi <input type="number" id="rg_sat"><br>
+Dimanche <input type="number" id="rg_sun"><br>
+
+<br>
+
+<button onclick="saveRecurringRewards()">
+💾 Sauvegarder
+</button>
+
+<button onclick="closeRecurringRewards()">
+Fermer
+</button>
+
+</div>
 <script>
 /* ==================== INITIAL SETUP ==================== */
 const studentName = document.getElementById("studentName");
@@ -703,6 +851,14 @@ else {
 let current = null;
 let muted = localStorage.getItem("muted")==="true";
 let pickedStudents = [];
+let syncMinutes =
+    parseInt(
+        localStorage.getItem("syncMinutes")
+    ) || 5;
+
+let syncDisabled =
+    localStorage.getItem("syncDisabled")
+    === "true";
 let today = new Date().toISOString().split("T")[0];
 let lastReset = localStorage.getItem("class_" + className + "_lastReset");
 
@@ -723,6 +879,64 @@ let shopItems = JSON.parse(localStorage.getItem(className+"_shop")) || [
     {name:"Potion de soin", gold:5, mana:0, hearts:2},
     {name:"Potion de mana", gold:5, manaGain:2, hearts:0}
 ];
+
+let levelRewards = JSON.parse(
+    localStorage.getItem(className + "_levelRewards")
+) || {
+    gold: 1,
+    mana: 1,
+    hearts: 1
+};
+
+function openLevelRewards(){
+
+    document.getElementById("levelGold").value =
+        levelRewards.gold;
+
+    document.getElementById("levelMana").value =
+        levelRewards.mana;
+
+    document.getElementById("levelHearts").value =
+        levelRewards.hearts;
+
+    overlay.style.display = "block";
+    document.getElementById("levelRewardsPopup").style.display = "block";
+}
+
+function closeLevelRewards(){
+
+    document.getElementById("levelRewardsPopup").style.display = "none";
+
+    if(
+        popup.style.display !== "block" &&
+        settingsMenu.style.display !== "block" &&
+        toolsMenu.style.display !== "block"
+    ){
+        overlay.style.display = "none";
+    }
+}
+
+function saveLevelRewards(){
+
+    levelRewards.gold =
+        parseInt(document.getElementById("levelGold").value) || 0;
+
+    levelRewards.mana =
+        parseInt(document.getElementById("levelMana").value) || 0;
+
+    levelRewards.hearts =
+        parseInt(document.getElementById("levelHearts").value) || 0;
+
+    localStorage.setItem(
+        className + "_levelRewards",
+        JSON.stringify(levelRewards)
+    );
+
+    alert("Récompenses sauvegardées !");
+    closeLevelRewards();
+}
+
+
 
 function openWeeklyRewards(){
 
@@ -763,6 +977,69 @@ function getDayKey(date = new Date()){
 
 function getDayLabel(key){
     return dayMapFR[key];
+}
+
+function openRecurringRewards(){
+
+    const s = students[current];
+
+    const days =
+    ["mon","tue","wed","thu","fri","sat","sun"];
+
+    days.forEach(day=>{
+
+        document.getElementById("rh_"+day).value =
+            s.recurringRewards.hearts[day];
+
+        document.getElementById("rm_"+day).value =
+            s.recurringRewards.mana[day];
+
+        document.getElementById("rg_"+day).value =
+            s.recurringRewards.gold[day];
+    });
+
+    document.getElementById(
+        "studentRecurringPopup"
+    ).style.display = "block";
+}
+
+function closeRecurringRewards(){
+
+    document.getElementById(
+        "studentRecurringPopup"
+    ).style.display = "none";
+}
+
+function saveRecurringRewards(){
+
+    const s = students[current];
+
+    const days =
+    ["mon","tue","wed","thu","fri","sat","sun"];
+
+    days.forEach(day=>{
+
+        s.recurringRewards.hearts[day] =
+            parseInt(
+                document.getElementById("rh_"+day).value
+            ) || 0;
+
+        s.recurringRewards.mana[day] =
+            parseInt(
+                document.getElementById("rm_"+day).value
+            ) || 0;
+
+        s.recurringRewards.gold[day] =
+            parseInt(
+                document.getElementById("rg_"+day).value
+            ) || 0;
+    });
+
+    saveData();
+
+    alert("Récompenses sauvegardées");
+
+    closeRecurringRewards();
 }
 
 function closeWeeklyRewards(){
@@ -1138,6 +1415,92 @@ function clearSelection(){
     render();
 }
 
+function addStudent(){
+
+    const name = prompt("Nom du nouvel élève :");
+
+    if(!name) return;
+
+   const student = {
+    name: name,
+    hearts: 10,
+    mana: 5,
+    gold: 0,
+    xp: 0,
+    level: 1,
+    absent: false,
+
+    recurringRewards:{
+        hearts:{
+            mon:0,tue:0,wed:0,
+            thu:0,fri:0,sat:0,sun:0
+        },
+        mana:{
+            mon:0,tue:0,wed:0,
+            thu:0,fri:0,sat:0,sun:0
+        },
+        gold:{
+            mon:0,tue:0,wed:0,
+            thu:0,fri:0,sat:0,sun:0
+        }
+    },
+
+    lastRecurringReward: new Date().toISOString().split("T")[0],
+
+    gender: "m",
+    image: "",
+    useDefaultImage: true,
+    defaultImage: ""
+};
+
+    refreshDefaultImage(student);
+
+    students.push(student);
+
+    saveData();
+    render();
+
+    alert(name + " ajouté !");
+}
+
+function deleteStudentByName(){
+
+    const name =
+        document.getElementById("studentToDelete")
+        .value
+        .trim();
+
+    if(!name){
+        alert("Entrez un nom.");
+        return;
+    }
+
+    const index = students.findIndex(
+        s => s.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if(index === -1){
+        alert("Élève introuvable.");
+        return;
+    }
+
+    if(!confirm(
+        "Supprimer " + students[index].name + " ?"
+    )){
+        return;
+    }
+
+    students.splice(index, 1);
+
+    saveData();
+    render();
+
+    document.getElementById("studentToDelete").value = "";
+
+    alert("Élève supprimé.");
+}
+
+
 function renderSpells(){
     const div = document.getElementById("spellList");
     div.innerHTML = "";
@@ -1193,6 +1556,27 @@ students.forEach((s,i)=>{
     if(s.gold === undefined) s.gold = 0;
     if(s.xp === undefined) s.xp = 0;
     if(s.level === undefined) s.level = 1;
+if(!s.recurringRewards){
+
+    s.recurringRewards = {
+        hearts:{
+            mon:0,tue:0,wed:0,
+            thu:0,fri:0,sat:0,sun:0
+        },
+        mana:{
+            mon:0,tue:0,wed:0,
+            thu:0,fri:0,sat:0,sun:0
+        },
+        gold:{
+            mon:0,tue:0,wed:0,
+            thu:0,fri:0,sat:0,sun:0
+        }
+    };
+}
+
+if(!s.lastRecurringReward){
+    s.lastRecurringReward = getTodayDate();
+}
 if(s.absent === undefined) s.absent = false;
     if(s.image === undefined) s.image = "";
 
@@ -1430,6 +1814,11 @@ else if(s.level >= 5){
 }
 render();
 document.getElementById("muteToggle").checked = muted;
+document.getElementById("syncMinutes").value =
+    syncMinutes;
+
+document.getElementById("disableSync").checked =
+    syncDisabled;
 const imageInput = document.getElementById("studentImage");
 
 imageInput.addEventListener("change", function(e){
@@ -1654,8 +2043,22 @@ function addXP(amount,index){
     xpEffect(index, amount);
 
     while(s.xp >= 1000){
-        s.xp -= 1000;
-        s.level++;
+
+    s.xp -= 1000;
+    s.level++;
+
+    // récompenses de niveau
+    s.gold += levelRewards.gold;
+
+    s.mana = Math.min(
+        5,
+        s.mana + levelRewards.mana
+    );
+
+    s.hearts = Math.min(
+        10,
+        s.hearts + levelRewards.hearts
+    );
         leveledUp = true;
 
         const oldStage = getEvolutionStage(s.level - 1);
@@ -1821,7 +2224,40 @@ function goBack(){
 
 
 /* ==================== SETTINGS ==================== */
-function openSettings(){ overlay.style.display="block"; settingsMenu.style.display="block"; }
+function saveSyncSettings(){
+
+    syncMinutes =
+        parseInt(
+            document.getElementById("syncMinutes").value
+        ) || 5;
+
+    if(syncMinutes < 1){
+        syncMinutes = 1;
+    }
+
+    syncDisabled =
+        document.getElementById("disableSync").checked;
+
+    localStorage.setItem(
+        "syncMinutes",
+        syncMinutes
+    );
+
+    localStorage.setItem(
+        "syncDisabled",
+        syncDisabled
+    );
+
+    countdown = syncMinutes * 60;
+
+    alert("Réglages sauvegardés !");
+}
+
+function openSettings(){ 
+overlay.style.display="block"; 
+settingsMenu.style.display="block"; 
+}
+
 function openTools(){ overlay.style.display="block"; toolsMenu.style.display="block"; }
 function closeAll(){
 
@@ -1838,7 +2274,20 @@ function closeAll(){
     document.getElementById("groupPopup").style.display = "none";
 
     document.getElementById("spellEditor").style.display = "none";
-document.getElementById("importFile").value = "";
+
+    document.getElementById("shopPopup").style.display = "none";
+
+    document.getElementById("shopEditor").style.display = "none";
+
+    document.getElementById("spellShopPopup").style.display = "none";
+
+    document.getElementById("weeklyPopup").style.display = "none";
+
+    document.getElementById("levelRewardsPopup").style.display = "none";
+
+    document.getElementById("studentRecurringPopup").style.display = "none";
+
+    document.getElementById("importFile").value = "";
     saveData();
 
     render();
@@ -2006,10 +2455,33 @@ function goToBoss(){
 
 // Export class to JSON file
 function exportClass(){
+
     const data = JSON.stringify({
-    icon: "🏫",
-    students: students
-}, null, 2);
+
+        icon:"🏫",
+
+        students: students,
+
+        shopItems: shopItems,
+
+        spells: spells,
+
+        weeklyRewards: weeklyRewards,
+
+        levelRewards: levelRewards,
+
+        syncSettings:{
+            minutes: syncMinutes,
+            disabled: syncDisabled
+        },
+
+        weeklyLastDate:
+            localStorage.getItem(
+                "weekly_lastDate_" + className
+            )
+
+    }, null, 2);
+
     const blob = new Blob([data], {type:"application/json"});
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -2036,7 +2508,44 @@ if(!data.students || !Array.isArray(data.students)){
 }
 
 students = data.students;
+if(data.shopItems)
+    shopItems = data.shopItems;
 
+if(data.spells)
+    spells = data.spells;
+
+if(data.weeklyRewards)
+    weeklyRewards = data.weeklyRewards;
+
+if(data.levelRewards)
+    levelRewards = data.levelRewards;
+
+if(data.syncSettings){
+
+    syncMinutes =
+        data.syncSettings.minutes || 5;
+
+    syncDisabled =
+        data.syncSettings.disabled || false;
+
+    localStorage.setItem(
+        "syncMinutes",
+        syncMinutes
+    );
+
+    localStorage.setItem(
+        "syncDisabled",
+        syncDisabled
+    );
+}
+
+if(data.weeklyLastDate){
+
+    localStorage.setItem(
+        "weekly_lastDate_" + className,
+        data.weeklyLastDate
+    );
+}
             students.forEach((s,i)=>{
 
                 if(s.hearts === undefined) s.hearts = 10;
@@ -2061,7 +2570,25 @@ students = data.students;
                 }
 
             });
+localStorage.setItem(
+    className+"_shop",
+    JSON.stringify(shopItems)
+);
 
+localStorage.setItem(
+    className+"_spells",
+    JSON.stringify(spells)
+);
+
+localStorage.setItem(
+    className+"_weeklyRewards",
+    JSON.stringify(weeklyRewards)
+);
+
+localStorage.setItem(
+    className+"_levelRewards",
+    JSON.stringify(levelRewards)
+);
             saveData();
             render();
 
@@ -2176,13 +2703,20 @@ function applyMissingDailyRewards(){
     if(diffDays <= 0) return;
 
     // appliquer chaque jour manqué
-    for(let i = 0; i < diffDays; i++){
+   for(let i = 0; i < diffDays; i++){
 
-        const tempDate = new Date(lastDate);
-        tempDate.setDate(tempDate.getDate() + i + 1);
+    const tempDate = new Date(lastDate);
 
-        applyRewardsForDate(tempDate);
-    }
+    tempDate.setDate(
+        tempDate.getDate() + i + 1
+    );
+
+    applyRewardsForDate(tempDate);
+
+    applyRecurringRewardsForDate(
+        tempDate
+    );
+}
 
     // mettre à jour la dernière date
     localStorage.setItem(lastDateKey, today.toISOString());
@@ -2214,6 +2748,35 @@ function applyRewardsForDate(date){
     });
 }
 
+function applyRecurringRewardsForDate(date){
+
+    const dayMap =
+    ["sun","mon","tue","wed","thu","fri","sat"];
+
+    const day =
+        dayMap[date.getDay()];
+
+    students.forEach(s=>{
+
+        if(s.hearts === 0) return;
+
+        s.hearts = Math.min(
+            10,
+            s.hearts +
+            (s.recurringRewards.hearts[day] || 0)
+        );
+
+        s.mana = Math.min(
+            5,
+            s.mana +
+            (s.recurringRewards.mana[day] || 0)
+        );
+
+        s.gold +=
+            (s.recurringRewards.gold[day] || 0);
+    });
+}
+
 function heartbeat(){
     saveData();
     render();
@@ -2223,23 +2786,13 @@ function heartbeat(){
 
 /* ==================== AUTO-SYNC ==================== */
 
-let countdown = 300;
+let countdown = syncMinutes * 60;
 
-const timerDisplay = document.createElement("div");
-
-timerDisplay.style.position = "fixed";
-timerDisplay.style.bottom = "10px";
-timerDisplay.style.right = "15px";
-timerDisplay.style.background = "#222";
-timerDisplay.style.color = "white";
-timerDisplay.style.padding = "6px 12px";
-timerDisplay.style.borderRadius = "8px";
-timerDisplay.style.zIndex = "9999";
-
-document.body.appendChild(timerDisplay);
+const timerDisplay =
+    document.getElementById("syncTimer");
 
 function syncClassData(){
-
+if(syncDisabled) return;
     const rawData =
         localStorage.getItem("class_" + className);
 
@@ -2254,7 +2807,13 @@ function syncClassData(){
 }
 
 setInterval(()=>{
+if(syncDisabled){
 
+    timerDisplay.innerText =
+        "🔄 Désactivée";
+
+    return;
+}
     countdown--;
 
     const minutes =
