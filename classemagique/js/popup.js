@@ -5,12 +5,11 @@ function openPopup(index){
 
     const s = students[index];
     current = index;
-
-    // 💀 CAS SPÉCIAL : RÉDEMPTION
+/* // 💀 CAS SPÉCIAL : RÉDEMPTION
     if(s.hearts === 0){
         openRedemption(index);
         return;
-    }
+    }*/
 
     // ✅ CAS NORMAL
     studentName.value = s.name;
@@ -25,42 +24,34 @@ function openPopup(index){
 
     document.getElementById("card-"+index).style.outline="3px solid orange";
 
-    overlay.style.display="block";
-    popup.style.display="block";
+    openPopupById("student");
 }
 
 function closeAll(){
 
-    overlay.style.display = "none";
-
-    popup.style.display = "none";
-
-    settingsMenu.style.display = "none";
-
-    toolsMenu.style.display = "none";
-
-    document.getElementById("bulkPopup").style.display = "none";
-
-    document.getElementById("groupPopup").style.display = "none";
-
-    document.getElementById("spellEditor").style.display = "none";
-
-    document.getElementById("shopPopup").style.display = "none";
-
-    document.getElementById("shopEditor").style.display = "none";
-
-    document.getElementById("spellShopPopup").style.display = "none";
-
-    document.getElementById("weeklyPopup").style.display = "none";
-
-    document.getElementById("levelRewardsPopup").style.display = "none";
-
-    document.getElementById("studentRecurringPopup").style.display = "none";
+    closeAllPopups();
 
     document.getElementById("importFile").value = "";
+
     saveData();
 
     render();
+}
+
+function openPopupById(name){
+
+    overlay.style.display = "block";
+
+    popups[name].style.display = "block";
+}
+
+function closeAllPopups(){
+
+    Object.values(popups).forEach(p => {
+        p.style.display = "none";
+    });
+
+    overlay.style.display = "none";
 }
 
 function openRedemption(index){
@@ -76,13 +67,11 @@ function openRedemption(index){
     document.getElementById("redemptionName").innerText =
         s.name;
 
-    overlay.style.display = "block";
-    redemptionPopup.style.display = "block";
+    openPopupById("redemption");
 }
 
 function closeRedemption(){
-    redemptionPopup.style.display = "none";
-    overlay.style.display = "none";
+    closeAllPopups();
     redemptionIndex = null;
 }
 

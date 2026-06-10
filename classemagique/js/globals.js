@@ -19,6 +19,33 @@ const dayMapFR = {
     fri: "Vendredi",
     sat: "Samedi"
 };
+const popups = {
+
+    student: document.getElementById("popup"),
+    redemption: document.getElementById("redemptionPopup"),
+
+    settings: document.getElementById("settingsMenu"),
+    tools: document.getElementById("toolsMenu"),
+
+    bulk: document.getElementById("bulkPopup"),
+    group: document.getElementById("groupPopup"),
+
+    spellEditor: document.getElementById("spellEditor"),
+    spellShop: document.getElementById("spellShopPopup"),
+
+    shop: document.getElementById("shopPopup"),
+    shopEditor: document.getElementById("shopEditor"),
+
+    weekly: document.getElementById("weeklyPopup"),
+
+    levelRewards: document.getElementById("levelRewardsPopup"),
+
+    recurring: document.getElementById("studentRecurringPopup"),
+
+    sanctionEditor: document.getElementById("sanctionEditor"),
+
+    sanction: document.getElementById("sanctionPopup")
+};
 let className = params.get("name") || "Default Class";
 
 let weeklyRewards = JSON.parse(
