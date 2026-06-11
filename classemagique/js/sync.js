@@ -35,6 +35,7 @@ function toggleMute(){
 function openSettings(){ 
 overlay.style.display="block"; 
 settingsMenu.style.display="block"; 
+
 }
 
 function openTools(){ 
@@ -50,12 +51,15 @@ if(syncDisabled) return;
 
     const raw = JSON.parse(rawData);
 
-    if(raw.students){
-        students = raw.students;
-        render();
-    }
-}
+  if(raw.students){
 
+    console.log("SYNC");
+
+    students = raw.students;
+
+    render();
+}
+}
 setInterval(()=>{
 if(syncDisabled){
 

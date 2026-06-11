@@ -50,23 +50,31 @@ function saveLevelRewards(){
 
 function openWeeklyRewards(){
 
-   const days = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+   const days = [
+    ["mon","Lundi"],
+    ["tue","Mardi"],
+    ["wed","Mercredi"],
+    ["thu","Jeudi"],
+    ["fri","Vendredi"],
+    ["sat","Samedi"],
+    ["sun","Dimanche"]
+];
 
     function build(containerId, type){
 
         const div = document.getElementById(containerId);
         div.innerHTML = "";
 
-        days.forEach(d=>{
-            div.innerHTML += `
-                <label style="display:block;">
-                    <input type="checkbox"
-                        ${weeklyRewards[type][d] ? "checked" : ""}
-                        onchange="weeklyRewards.${type}[d]=this.checked">
-                    ${d}
-                </label>
-            `;
-        });
+        days.forEach(([key,label])=>{
+    div.innerHTML += `
+        <label style="display:block;">
+            <input type="checkbox"
+                ${weeklyRewards[type][key] ? "checked" : ""}
+                onchange="weeklyRewards['${type}']['${key}']=this.checked">
+            ${label}
+        </label>
+    `;
+});
     }
 
     build("weekHeartsDays","hearts");
@@ -139,28 +147,36 @@ function applyWeeklyRewards(){
 function autoWeeklyRewards(){
 
     const today = getTodayKey();
+
+    
     const lastRunKey = "weekly_" + className + "_" + today;
     const lastRun = localStorage.getItem(lastRunKey);
 
     // déjà appliqué aujourd’hui → on sort
     if(lastRun === "done") return;
 
-    students.forEach(s=>{
+    students.forEach(s => {
 
-        if(s.hearts === 0) return;
+    if(s.hearts === 0) return;
 
-        if(weeklyRewards.hearts[today]){
-            s.hearts = Math.min(10, s.hearts + weeklyRewards.values.hearts);
-        }
+    if(weeklyRewards.hearts[today]){
+        s.hearts = Math.min(
+            10,
+            s.hearts + weeklyRewards.values.hearts
+        );
+    }
 
-        if(weeklyRewards.mana[today]){
-            s.mana = Math.min(5, s.mana + weeklyRewards.values.mana);
-        }
+    if(weeklyRewards.mana[today]){
+        s.mana = Math.min(
+            5,
+            s.mana + weeklyRewards.values.mana
+        );
+    }
 
-        if(weeklyRewards.gold[today]){
-            s.gold += weeklyRewards.values.gold;
-        }
-    });
+    if(weeklyRewards.gold[today]){
+        s.gold += weeklyRewards.values.gold;
+    }
+});
 
     localStorage.setItem(lastRunKey, "done");
 
@@ -291,6 +307,8 @@ function applyMissingDailyRewards(){
     const today = new Date();
     today.setHours(0,0,0,0);
 
+   
+
     let lastDate;
 
     if(lastDateStr){
@@ -310,8 +328,9 @@ function applyMissingDailyRewards(){
 
     // appliquer chaque jour manqué
    for(let i = 0; i < diffDays; i++){
+const tempDate = new Date(lastDate);
 
-    const tempDate = new Date(lastDate);
+console.log("Applying rewards for", tempDate);
 
     tempDate.setDate(
         tempDate.getDate() + i + 1

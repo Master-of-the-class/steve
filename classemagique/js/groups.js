@@ -12,7 +12,20 @@ const selected = document.querySelectorAll(".selectBox:checked");
 }
 
 function applyBulkReward(){
+console.log("selectedStudents", selectedStudents);
+console.log(
+    selectedStudents.map(i => ({
+        name: students[i].name,
+        hearts: students[i].hearts,
+        mana: students[i].mana,
+        gold: students[i].gold,
+        xp: students[i].xp
+    }))
+);
+const checked =
+    document.querySelectorAll(".selectBox:checked");
 
+console.log("checked", checked.length);
     if(selectedStudents.length === 0){
         alert("Aucun élève sélectionné");
         return;

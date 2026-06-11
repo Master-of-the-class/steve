@@ -46,6 +46,7 @@ students[current].useDefaultImage = false;
 });	
 	
 applyMissingDailyRewards();
+autoWeeklyRewards();
 saveData();
 render();
 

@@ -190,9 +190,14 @@ function changeXP(){
 
 let levelSound = new Audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3");
 
-function addXP(amount,index){
+function addXP(amount, index){
+
     let s = students[index];
     s.xp += amount;
+
+    if(typeof xpEffect === "function"){
+        xpEffect(index, amount);
+    }
 
     let leveledUp = false;
 
