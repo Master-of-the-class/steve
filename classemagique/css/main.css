@@ -178,3 +178,22 @@ button:hover{
     font-size:48px;
     margin-bottom:10px;
 }
+
+.panel-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form {
+    flex: 1;
+}
+
+.image {
+    flex: 0;
+}
+
+.image img {
+    width: 180px; /* ajuste selon ton goût */
+    margin-left: 30px;
+}
