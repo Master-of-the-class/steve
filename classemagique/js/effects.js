@@ -6,7 +6,21 @@ style.innerHTML=`
 }`;
 document.head.appendChild(style);
 
-
+function xpEffect(index, amount){
+    const card = document.getElementById("card-"+index);
+    const xp = document.createElement("div");
+    xp.innerText = "⭐ +" + amount;
+    xp.style.position="absolute";
+    xp.style.color="blue";
+    xp.style.fontWeight="bold";
+    xp.style.top="60%";
+    xp.style.left="50%";
+    xp.style.transform="translate(-50%,-50%)";
+    xp.style.animation="floatUp 1s forwards";
+    card.appendChild(xp);
+    setTimeout(()=>xp.remove(),1000);
+}
+	
 function heartEffect(index, positive=true){
     const card = document.getElementById("card-"+index);
     const heart = document.createElement("div");
