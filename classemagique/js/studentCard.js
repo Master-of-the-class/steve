@@ -64,11 +64,11 @@ function createStudentCard(s, i){
         </div>
     </div>
 
-    <div class="statsCompact">
-        <div>❤️ ${s.hearts}</div>
-        <div>🔮 ${s.mana}</div>
-        <div>🪙 ${s.gold}</div>
-    </div>
+   <div class="statsCompact">
+    <div><span class="icon">❤️</span><span>${s.hearts}</span></div>
+    <div><span class="icon">🔮</span><span>${s.mana}</span></div>
+    <div><span class="icon">🪙</span><span>${s.gold}</span></div>
+</div>
 
 </div>
 `;
