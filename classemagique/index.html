@@ -16,23 +16,27 @@
 <div class="main">
 
     <div class="panel">
-        <h2>✨ Créer une nouvelle classe</h2>
 
-        <input type="text"
-       id="className"
-       placeholder="Nom de la classe">
+    <div class="panel-content">
 
-<input type="number"
-       id="studentCount"
-       placeholder="Nombre d'élèves">
+        
+        <div class="form">
+            <h2>✨ Créer une nouvelle classe</h2>
 
-<br><br>
+            <input type="text"
+                   id="className"
+                   placeholder="Nom de la classe">
 
-<label>Icône de la classe :</label>
+            <input type="number"
+                   id="studentCount"
+                   placeholder="Nombre d'élèves">
 
-<select id="classIcon">
+            <br><br>
 
-    <option value="🏫">🏫</option>
+            <label>Icône de la classe :</label>
+
+            <select id="classIcon">
+                <option value="🏫">🏫</option>
     <option value="⚔️">⚔️</option>
 <option value="🗡️">🗡️</option>
 <option value="🛡️">🛡️</option>
@@ -85,16 +89,24 @@
 <option value="⚜️">⚜️</option>
 <option value="🏆">🏆</option>
 <option value="🎖️">🎖️</option>
+            </select>
 
-</select>
+            <br><br>
 
-<br><br>
+            <button id="createClassBtn">
+                ➕ Créer
+            </button>
+        </div>
 
-<button id="createClassBtn">
-    ➕ Créer
-</button>
+        
+        <div class="image">
+            <img src="images/classemagique2.png" alt="Classe magique">
+        </div>
+
     </div>
 
+</div>
+   
     <div class="panel">
         <h2>📚 Classes existantes</h2>
 
