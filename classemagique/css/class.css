@@ -531,8 +531,8 @@ button{
     margin-top:0px;
 
     text-align:center;
-
-    font-size:clamp(10px, 1vw, 16px);
+font-size:17px;
+ /*   font-size:clamp(10px, 1vw, 16px);*/
 
     font-weight:bold;
 }
