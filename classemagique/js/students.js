@@ -1,40 +1,57 @@
 function addStudent(){
 
-    const name = prompt("Nom du nouvel élève :");
+    if(
+        sessionStorage.getItem("isDemo")
+        === "true"
+    ){
+
+        alert(
+            "La version démo ne permet pas d'ajouter des élèves."
+        );
+
+        return;
+    }
+
+    const name =
+        prompt("Nom du nouvel élève :");
 
     if(!name) return;
 
-   const student = {
-    name: name,
-    hearts: 10,
-    mana: 5,
-    gold: 0,
-    xp: 0,
-    level: 1,
-    absent: false,
+    const student = {
 
-    recurringRewards:{
-        hearts:{
-            mon:0,tue:0,wed:0,
-            thu:0,fri:0,sat:0,sun:0
+        name:name,
+        hearts:10,
+        mana:5,
+        gold:0,
+        xp:0,
+        level:1,
+        absent:false,
+
+        recurringRewards:{
+            hearts:{
+                mon:0,tue:0,wed:0,
+                thu:0,fri:0,sat:0,sun:0
+            },
+            mana:{
+                mon:0,tue:0,wed:0,
+                thu:0,fri:0,sat:0,sun:0
+            },
+            gold:{
+                mon:0,tue:0,wed:0,
+                thu:0,fri:0,sat:0,sun:0
+            }
         },
-        mana:{
-            mon:0,tue:0,wed:0,
-            thu:0,fri:0,sat:0,sun:0
-        },
-        gold:{
-            mon:0,tue:0,wed:0,
-            thu:0,fri:0,sat:0,sun:0
-        }
-    },
 
-    lastRecurringReward: new Date().toISOString().split("T")[0],
+        lastRecurringReward:
+            new Date()
+            .toISOString()
+            .split("T")[0],
 
-    gender: "m",
-    image: "",
-    useDefaultImage: true,
-    defaultImage: ""
-};
+        gender:"m",
+        image:"",
+        useDefaultImage:true,
+        defaultImage:""
+    };
 
     refreshDefaultImage(student);
 
@@ -151,38 +168,144 @@ students.forEach(s=>{
 });
 
 function changeHearts(v){
+
     let s = students[current];
     let old = s.hearts;
 
     s.hearts = s.hearts + v;
     s.hearts = Math.max(0, Math.min(10, s.hearts));
 
-    if(s.hearts !== old) heartEffect(current, v>0);
+    if(s.hearts !== old){
+
+        addHistory({
+
+            studentIndex: current,
+            studentName: s.name,
+
+            type: "hearts",
+
+            amount: s.hearts - old,
+
+            before: old,
+            after: s.hearts,
+
+            source: "individuel",
+
+            date: Date.now()
+        });
+
+        heartEffect(current, v > 0);
+    }
+
     updateLive();
 }
 
 function changeMana(v){
+
     let s = students[current];
-    s.mana = Math.min(5, Math.max(0,s.mana+v));
+    let old = s.mana;
+
+    s.mana = Math.min(
+        5,
+        Math.max(0, s.mana + v)
+    );
+
+    if(s.mana !== old){
+
+        addHistory({
+
+            studentIndex: current,
+            studentName: s.name,
+
+            type: "mana",
+
+            amount: s.mana - old,
+
+            before: old,
+            after: s.mana,
+
+            source: "individuel",
+
+            date: Date.now()
+        });
+    }
+
     updateLive();
 }
 
 function changeGold(){
-    let amount = parseInt(goldInput.value)||0;
+
+    let amount =
+        parseInt(goldInput.value) || 0;
+
     let s = students[current];
-    s.gold = Math.max(0,s.gold+amount);
+
+    let old = s.gold;
+
+    s.gold =
+        Math.max(
+            0,
+            s.gold + amount
+        );
+
+    if(s.gold !== old){
+
+        addHistory({
+
+            studentIndex: current,
+            studentName: s.name,
+
+            type: "gold",
+
+            amount: s.gold - old,
+
+            before: old,
+            after: s.gold,
+
+            source: "individuel",
+
+            date: Date.now()
+        });
+    }
+
     updateLive();
 }
 
 function changeXP(){
-    let amount = parseInt(document.getElementById("xpInput").value) || 0;
+
+    let amount =
+        parseInt(
+            document.getElementById("xpInput").value
+        ) || 0;
+
     if(amount <= 0) return;
 
+    let s = students[current];
+
+    let old = s.xp;
+
     addXP(amount, current);
+
+    addHistory({
+
+        studentIndex: current,
+        studentName: s.name,
+
+        type: "xp",
+
+        amount: amount,
+
+        before: old,
+        after: s.xp,
+
+        source: "individuel",
+
+        date: Date.now()
+    });
+
     updateLive();
     saveData();
 
-    
     setTimeout(() => {
         render();
     }, 250);
@@ -193,7 +316,14 @@ let levelSound = new Audio("https://www.soundjay.com/misc/sounds/bell-ringing-05
 function addXP(amount, index){
 
     let s = students[index];
+
     s.xp += amount;
+
+    if(s.xpTotal === undefined){
+        s.xpTotal = 0;
+    }
+
+    s.xpTotal += amount;
 
     if(typeof xpEffect === "function"){
         xpEffect(index, amount);
@@ -205,31 +335,36 @@ function addXP(amount, index){
 
     while(s.xp >= 1000){
 
-    s.xp -= 1000;
-    s.level++;
+        s.xp -= 1000;
+        s.level++;
 
-    // récompenses de niveau
-    s.gold += levelRewards.gold;
+        // récompenses de niveau
+        s.gold += levelRewards.gold;
 
-    s.mana = Math.min(
-        5,
-        s.mana + levelRewards.mana
-    );
+        s.mana = Math.min(
+            5,
+            s.mana + levelRewards.mana
+        );
 
-    s.hearts = Math.min(
-        10,
-        s.hearts + levelRewards.hearts
-    );
+        s.hearts = Math.min(
+            10,
+            s.hearts + levelRewards.hearts
+        );
+
         leveledUp = true;
 
-        const oldStage = getEvolutionStage(s.level - 1);
-        const newStage = getEvolutionStage(s.level);
+        const oldStage =
+            getEvolutionStage(s.level - 1);
+
+        const newStage =
+            getEvolutionStage(s.level);
 
         if(oldStage !== newStage){
             refreshDefaultImage(s);
         }
 
-        if(!muted) levelSound.play();
+        if(!muted)
+            levelSound.play();
     }
 
     if(leveledUp){
@@ -238,7 +373,7 @@ function addXP(amount, index){
 }
 
 function saveAndClose(){
-console.log("SAVE CLICKED");
+
     if(current === null) return;
 
     const nameInput = document.getElementById("studentName");
@@ -247,7 +382,7 @@ console.log("SAVE CLICKED");
 
     saveData();
     render();
-    closeAll(); // IMPORTANT : pas closeAllWithoutSave
+    closeAll();
 }
 
 function resetClass(){

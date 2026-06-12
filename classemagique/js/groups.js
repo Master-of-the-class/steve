@@ -37,14 +37,118 @@ console.log("checked", checked.length);
     let xp     = parseInt(document.getElementById("bulkXP").value) || 0;
 
     selectedStudents.forEach(i=>{
-        students[i].hearts = Math.min(10, Math.max(0, students[i].hearts + hearts));
-        students[i].mana   = Math.min(5, Math.max(0, students[i].mana + mana));
-        students[i].gold   = Math.max(0, students[i].gold + gold);
 
-        if(xp !== 0){
-            addXP(xp, i);
-        }
-    });
+    const oldHearts = students[i].hearts;
+    const oldMana = students[i].mana;
+    const oldGold = students[i].gold;
+
+    students[i].hearts =
+        Math.min(
+            10,
+            Math.max(
+                0,
+                students[i].hearts + hearts
+            )
+        );
+
+    students[i].mana =
+        Math.min(
+            5,
+            Math.max(
+                0,
+                students[i].mana + mana
+            )
+        );
+
+    students[i].gold =
+        Math.max(
+            0,
+            students[i].gold + gold
+        );
+
+    if(hearts !== 0){
+
+        addHistory({
+
+            studentIndex:i,
+            studentName:students[i].name,
+
+            type:"hearts",
+
+            amount:hearts,
+
+            before:oldHearts,
+            after:students[i].hearts,
+
+            source:"bulk",
+
+            date:Date.now()
+        });
+    }
+
+    if(mana !== 0){
+
+        addHistory({
+
+            studentIndex:i,
+            studentName:students[i].name,
+
+            type:"mana",
+
+            amount:mana,
+
+            before:oldMana,
+            after:students[i].mana,
+
+            source:"bulk",
+
+            date:Date.now()
+        });
+    }
+
+    if(gold !== 0){
+
+        addHistory({
+
+            studentIndex:i,
+            studentName:students[i].name,
+
+            type:"gold",
+
+            amount:gold,
+
+            before:oldGold,
+            after:students[i].gold,
+
+            source:"bulk",
+
+            date:Date.now()
+        });
+    }
+
+    if(xp !== 0){
+
+        addXP(xp, i);
+
+        addHistory({
+
+            studentIndex:i,
+            studentName:students[i].name,
+
+            type:"xp",
+
+            amount:xp,
+
+            before:students[i].xp - xp,
+            after:students[i].xp,
+
+            source:"bulk",
+
+            date:Date.now()
+        });
+    }
+
+});
 
     saveData();
     render();

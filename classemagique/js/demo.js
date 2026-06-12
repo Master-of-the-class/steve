@@ -92,8 +92,7 @@ function openClass(name){
     if(name === "Classe Magique"){
 
         window.location.href =
-            "demo.html?name=" +
-            encodeURIComponent(name);
+            "demo.html";
 
         return;
     }

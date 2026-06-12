@@ -368,10 +368,38 @@ function getDayLabel(key){
 }
 
 function quickHeart(index, value){
+
     let s = students[index];
+
     let old = s.hearts;
-    s.hearts = Math.min(10, Math.max(0, s.hearts + value));
-    if(s.hearts !== old) heartEffect(index, value>0);
+
+    s.hearts = Math.min(
+        10,
+        Math.max(0, s.hearts + value)
+    );
+
+    if(s.hearts !== old){
+
+        heartEffect(index, value > 0);
+
+        addHistory({
+
+            studentIndex:index,
+            studentName:s.name,
+
+            type:"hearts",
+
+            amount:value,
+
+            before:old,
+            after:s.hearts,
+
+            source:"individual",
+
+            date:Date.now()
+        });
+    }
+
     saveData();
     render();
 }
