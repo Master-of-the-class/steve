@@ -323,49 +323,33 @@ function addXP(amount, index){
     if(s.xpTotal === undefined){
         s.xpTotal = 0;
     }
-
     s.xpTotal += amount;
-
-    if(typeof xpEffect === "function"){
-        xpEffect(index, amount);
-    }
 
     let leveledUp = false;
 
-    xpEffect(index, amount);
-
     while(s.xp >= 1000){
-
         s.xp -= 1000;
         s.level++;
 
-        // récompenses de niveau
         s.gold += levelRewards.gold;
 
-        s.mana = Math.min(
-            5,
-            s.mana + levelRewards.mana
-        );
-
-        s.hearts = Math.min(
-            10,
-            s.hearts + levelRewards.hearts
-        );
+        s.mana = Math.min(5, s.mana + levelRewards.mana);
+        s.hearts = Math.min(10, s.hearts + levelRewards.hearts);
 
         leveledUp = true;
 
-        const oldStage =
-            getEvolutionStage(s.level - 1);
-
-        const newStage =
-            getEvolutionStage(s.level);
+        const oldStage = getEvolutionStage(s.level - 1);
+        const newStage = getEvolutionStage(s.level);
 
         if(oldStage !== newStage){
             refreshDefaultImage(s);
         }
 
-        if(!muted)
-            levelSound.play();
+
+    }
+
+    if(typeof xpEffect === "function"){
+        xpEffect(index, amount);
     }
 
     if(leveledUp){
