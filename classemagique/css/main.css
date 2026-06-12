@@ -197,3 +197,31 @@ button:hover{
     width: 180px; /* ajuste selon ton goût */
     margin-left: 30px;
 }
+.image{
+
+    flex:1;
+
+    min-height:400px;
+
+    background-image:
+        url("../images/classemagique2.png");
+
+    background-size:cover;
+
+    background-position:center;
+
+    border-radius:20px;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.4);
+}
+
+.image{
+
+    transition:.3s;
+}
+
+.image:hover{
+
+    transform:scale(1.02);
+}
