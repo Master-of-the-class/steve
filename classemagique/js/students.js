@@ -311,7 +311,7 @@ function changeXP(){
     }, 250);
 }
 
-let levelSound = new Audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3");
+
 
 function addXP(amount, index){
 
