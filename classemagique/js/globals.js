@@ -55,9 +55,9 @@ let weeklyRewards = JSON.parse(
     mana: { mon:false, tue:false, wed:false, thu:false, fri:false, sat:false, sun:false },
     gold: { mon:false, tue:false, wed:false, thu:false, fri:false, sat:false, sun:false },
     values: {
-        hearts: 1,
-        mana: 1,
-        gold: 1
+        hearts: 0,
+        mana: 0,
+        gold: 0
     }
 };
 let redemptionIndex = null;
@@ -111,8 +111,8 @@ if(lastReset !== today){
     saveData();
 }
 let spells = JSON.parse(localStorage.getItem(className+"_spells")) || [
-    {name:"Fireball", cost:1, damage:1},
-    {name:"Ice", cost:2, damage:2}
+    {name:"Aide d'un élève pour répondre à une question", cost:1, damage:0},
+    {name:"Passer son tour", cost:2, damage:0}
 ];
 let shopItems = JSON.parse(localStorage.getItem(className+"_shop")) || [
     {name:"Potion de soin", gold:5, mana:0, hearts:2},
@@ -122,9 +122,9 @@ let shopItems = JSON.parse(localStorage.getItem(className+"_shop")) || [
 let levelRewards = JSON.parse(
     localStorage.getItem(className + "_levelRewards")
 ) || {
-    gold: 1,
-    mana: 1,
-    hearts: 1
+    gold: 0,
+    mana: 0,
+    hearts: 0
 };
 
 let sanctions = JSON.parse(localStorage.getItem(className + "_sanctions")) || [
