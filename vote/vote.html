@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compteur de choix</title>
 
-```
+
 <style>
     * {
         box-sizing: border-box;
@@ -98,25 +98,22 @@
         font-weight: bold;
     }
 
-    /*
-     * Zone dans laquelle les encadrés peuvent être déplacés
-     */
     #board {
         position: relative;
         margin: 15px;
         min-height: 600px;
+
         background:
             linear-gradient(#ddd 1px, transparent 1px),
             linear-gradient(90deg, #ddd 1px, transparent 1px);
+
         background-size: 25px 25px;
+
         border: 2px solid #aaa;
         border-radius: 10px;
         overflow: hidden;
     }
 
-    /*
-     * Encadré d'un choix
-     */
     .choice {
         position: absolute;
 
@@ -137,24 +134,21 @@
         text-align: center;
 
         user-select: none;
-
         cursor: grab;
 
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 
         transition:
-            box-shadow 0.15s,
-            border-color 0.15s,
-            background 0.15s;
+            background-color 0.1s,
+            border-color 0.1s,
+            box-shadow 0.1s,
+            transform 0.1s;
     }
 
     .choice:active {
         cursor: grabbing;
     }
 
-    /*
-     * En mode prêt, les encadrés ne peuvent plus être déplacés
-     */
     .ready-mode .choice {
         cursor: pointer;
     }
@@ -164,15 +158,36 @@
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
     }
 
+    /*
+     * ========================================================
+     * EFFET VISUEL LORS D'UN CLIC
+     * ========================================================
+     *
+     * Cette classe est ajoutée pendant 0,5 seconde.
+     */
+
+    .choice.clicked {
+        background: #90ee90;
+        border-color: #198754;
+        transform: scale(0.96);
+    }
+
+    /*
+     * Pendant le blocage de 0,5 seconde,
+     * le curseur indique que le bouton est temporairement
+     * indisponible.
+     */
+
+    .choice.blocked {
+        cursor: not-allowed;
+    }
+
     .choice-name {
         font-size: 18px;
         font-weight: bold;
         word-break: break-word;
     }
 
-    /*
-     * Compteur
-     */
     .counter {
         display: none;
         margin-top: 10px;
@@ -181,16 +196,10 @@
         color: #6f42c1;
     }
 
-    /*
-     * Quand les résultats sont affichés
-     */
     .show-results .counter {
         display: block;
     }
 
-    /*
-     * Choix gagnant
-     */
     .winner {
         border-color: #ffc107;
         background: #fff8dc;
@@ -207,9 +216,6 @@
         font-size: 32px;
     }
 
-    /*
-     * Message lorsqu'il n'y a aucun choix
-     */
     #emptyMessage {
         position: absolute;
         width: 100%;
@@ -240,7 +246,7 @@
         }
     }
 </style>
-```
+
 
 </head>
 
@@ -250,11 +256,9 @@
     <h1>🎯 Compteur de choix</h1>
 </header>
 
-<!-- Ajouter un choix -->
-
 <div class="add-choice">
 
-```
+
 <input
     type="text"
     id="choiceInput"
@@ -265,15 +269,13 @@
 <button id="addButton">
     ➕ Ajouter
 </button>
-```
+
 
 </div>
 
-<!-- Boutons de contrôle -->
-
 <div class="controls">
 
-```
+
 <button id="readyButton">
     ✓ Prêt
 </button>
@@ -289,7 +291,7 @@
 <button id="resultsButton">
     🏆 Afficher les résultats
 </button>
-```
+
 
 </div>
 
@@ -297,15 +299,13 @@
     Mode modification : ajoute et déplace tes choix.
 </div>
 
-<!-- Zone de travail -->
-
 <div id="board">
 
-```
+
 <div id="emptyMessage">
     Ajoute un choix pour commencer.
 </div>
-```
+
 
 </div>
 
@@ -317,7 +317,8 @@
      * ============================================================
      */
 
-    const board = document.getElementById("board");
+    const board =
+        document.getElementById("board");
 
     const choiceInput =
         document.getElementById("choiceInput");
@@ -345,31 +346,14 @@
 
 
     /*
-     * Liste des choix
-     *
-     * Exemple :
-     *
-     * [
-     *     {
-     *         id: 1,
-     *         name: "Pizza",
-     *         score: 4,
-     *         x: 100,
-     *         y: 50
-     *     }
-     * ]
+     * ============================================================
+     * ÉTAT DE L'APPLICATION
+     * ============================================================
      */
 
     let choices = [];
 
     let nextId = 1;
-
-    /*
-     * Deux modes :
-     *
-     * "edit"  = on peut déplacer les encadrés
-     * "ready" = les clics donnent des points
-     */
 
     let mode = "edit";
 
@@ -388,20 +372,16 @@
             choiceInput.value.trim();
 
         if (name === "") {
+
             choiceInput.focus();
+
             return;
         }
 
-        /*
-         * Position initiale de l'encadré.
-         *
-         * On décale chaque nouveau choix
-         * pour éviter qu'ils soient exactement
-         * l'un par-dessus l'autre.
-         */
 
         const offset =
             choices.length * 30;
+
 
         const choice = {
 
@@ -413,9 +393,21 @@
 
             x: 30 + (offset % 500),
 
-            y: 30 + (offset % 300)
+            y: 30 + (offset % 300),
+
+            /*
+             * Bloqueur individuel.
+             *
+             * false = le choix peut être cliqué
+             * true  = le choix est temporairement bloqué
+             */
+
+            blocked: false,
+
+            winner: false
 
         };
+
 
         choices.push(choice);
 
@@ -426,6 +418,7 @@
         render();
 
         choiceInput.focus();
+
     }
 
 
@@ -437,37 +430,32 @@
 
     function render() {
 
-        /*
-         * Supprimer les anciens encadrés
-         */
-
         board
             .querySelectorAll(".choice")
-            .forEach(element => element.remove());
+            .forEach(
+                element =>
+                    element.remove()
+            );
 
-
-        /*
-         * Afficher ou cacher le message
-         */
 
         if (choices.length === 0) {
 
-            emptyMessage.style.display = "block";
+            emptyMessage.style.display =
+                "block";
 
         } else {
 
-            emptyMessage.style.display = "none";
+            emptyMessage.style.display =
+                "none";
+
         }
 
-
-        /*
-         * Classes générales
-         */
 
         board.classList.toggle(
             "ready-mode",
             mode === "ready"
         );
+
 
         board.classList.toggle(
             "show-results",
@@ -475,137 +463,233 @@
         );
 
 
-        /*
-         * Créer chaque encadré
-         */
+        choices.forEach(
+            choice => {
 
-        choices.forEach(choice => {
-
-            const element =
-                document.createElement("div");
-
-            element.className = "choice";
-
-            element.dataset.id =
-                choice.id;
-
-            element.style.left =
-                choice.x + "px";
-
-            element.style.top =
-                choice.y + "px";
+                const element =
+                    document.createElement("div");
 
 
-            /*
-             * Nom
-             */
-
-            const name =
-                document.createElement("div");
-
-            name.className =
-                "choice-name";
-
-            name.textContent =
-                choice.name;
+                element.className =
+                    "choice";
 
 
-            /*
-             * Compteur
-             */
-
-            const counter =
-                document.createElement("div");
-
-            counter.className =
-                "counter";
-
-            counter.textContent =
-                choice.score;
+                element.dataset.id =
+                    choice.id;
 
 
-            element.appendChild(name);
-
-            element.appendChild(counter);
-
-
-            /*
-             * Gagnant
-             */
-
-            if (
-                showingResults &&
-                choice.winner
-            ) {
-
-                element.classList.add("winner");
-
-            }
+                element.style.left =
+                    choice.x + "px";
 
 
-            /*
-             * Mode prêt :
-             *
-             * un clic ajoute 1 point
-             */
-
-            element.addEventListener(
-                "click",
-                function(event) {
-
-                    /*
-                     * En mode modification,
-                     * le clic ne fait rien.
-                     */
-
-                    if (mode !== "ready") {
-                        return;
-                    }
+                element.style.top =
+                    choice.y + "px";
 
 
-                    /*
-                     * Ajouter un point
-                     */
+                /*
+                 * Si ce choix est temporairement bloqué,
+                 * on ajoute la classe visuelle.
+                 */
 
-                    choice.score++;
+                if (choice.blocked) {
 
-                    /*
-                     * Les résultats disparaissent
-                     * dès qu'on recommence à compter.
-                     */
-
-                    showingResults = false;
-
-                    choices.forEach(
-                        c => c.winner = false
+                    element.classList.add(
+                        "blocked"
                     );
 
-                    render();
+                }
+
+
+                /*
+                 * Nom
+                 */
+
+                const name =
+                    document.createElement("div");
+
+                name.className =
+                    "choice-name";
+
+                name.textContent =
+                    choice.name;
+
+
+                /*
+                 * Compteur
+                 */
+
+                const counter =
+                    document.createElement("div");
+
+                counter.className =
+                    "counter";
+
+                counter.textContent =
+                    choice.score;
+
+
+                element.appendChild(name);
+
+                element.appendChild(counter);
+
+
+                /*
+                 * Gagnant
+                 */
+
+                if (
+                    showingResults &&
+                    choice.winner
+                ) {
+
+                    element.classList.add(
+                        "winner"
+                    );
 
                 }
-            );
 
 
-            /*
-             * Déplacement
-             */
+                /*
+                 * =================================================
+                 * CLIC SUR UN CHOIX
+                 * =================================================
+                 */
 
-            enableDragging(
-                element,
-                choice
-            );
+                element.addEventListener(
+                    "click",
+                    function() {
+
+                        /*
+                         * Pas de comptage en mode modification.
+                         */
+
+                        if (mode !== "ready") {
+
+                            return;
+
+                        }
 
 
-            board.appendChild(element);
+                        /*
+                         * LE BLOQUEUR
+                         *
+                         * Si le choix vient d'être cliqué,
+                         * on ignore le nouveau clic.
+                         */
 
-        });
+                        if (choice.blocked) {
+
+                            return;
+
+                        }
+
+
+                        /*
+                         * Bloquer immédiatement.
+                         */
+
+                        choice.blocked = true;
+
+
+                        /*
+                         * Ajouter 1 point.
+                         */
+
+                        choice.score++;
+
+
+                        /*
+                         * Effacer les résultats précédents.
+                         */
+
+                        showingResults = false;
+
+
+                        choices.forEach(
+                            c =>
+                                c.winner = false
+                        );
+
+
+                        /*
+                         * =================================================
+                         * EFFET VISUEL
+                         * =================================================
+                         *
+                         * On change temporairement la couleur
+                         * de l'encadré.
+                         */
+
+                        element.classList.add(
+                            "clicked"
+                        );
+
+
+                        /*
+                         * On ne fait PAS render()
+                         * ici immédiatement.
+                         *
+                         * Cela permet de conserver
+                         * l'effet visuel.
+                         */
+
+                        /*
+                         * Après 500 ms :
+                         *
+                         * - enlever la couleur
+                         * - débloquer le choix
+                         */
+
+                        setTimeout(
+                            function() {
+
+                                choice.blocked =
+                                    false;
+
+                                element.classList.remove(
+                                    "clicked"
+                                );
+
+                            },
+                            500
+                        );
+
+
+                        /*
+                         * Mettre à jour uniquement
+                         * le compteur affiché.
+                         */
+
+                        counter.textContent =
+                            choice.score;
+
+                    }
+                );
+
+
+                /*
+                 * Déplacement
+                 */
+
+                enableDragging(
+                    element,
+                    choice
+                );
+
+
+                board.appendChild(
+                    element
+                );
+
+            }
+        );
 
     }
 
 
     /*
      * ============================================================
-     * DÉPLACEMENT DES ENCADRÉS
+     * DÉPLACEMENT
      * ============================================================
      */
 
@@ -614,13 +698,10 @@
         choice
     ) {
 
-        /*
-         * Impossible de déplacer
-         * en mode prêt.
-         */
-
         if (mode !== "edit") {
+
             return;
+
         }
 
 
@@ -636,19 +717,27 @@
             function(event) {
 
                 if (mode !== "edit") {
+
                     return;
+
                 }
 
+
                 dragging = true;
+
 
                 const rect =
                     element.getBoundingClientRect();
 
+
                 offsetX =
-                    event.clientX - rect.left;
+                    event.clientX -
+                    rect.left;
+
 
                 offsetY =
-                    event.clientY - rect.top;
+                    event.clientY -
+                    rect.top;
 
 
                 element.setPointerCapture(
@@ -664,14 +753,19 @@
             function(event) {
 
                 if (!dragging) {
+
                     return;
+
                 }
+
 
                 const boardRect =
                     board.getBoundingClientRect();
 
+
                 const elementWidth =
                     element.offsetWidth;
+
 
                 const elementHeight =
                     element.offsetHeight;
@@ -682,20 +776,17 @@
                     boardRect.left -
                     offsetX;
 
+
                 let newY =
                     event.clientY -
                     boardRect.top -
                     offsetY;
 
 
-                /*
-                 * Empêcher l'encadré
-                 * de sortir de la zone.
-                 */
-
                 const maxX =
                     board.clientWidth -
                     elementWidth;
+
 
                 const maxY =
                     board.clientHeight -
@@ -705,13 +796,20 @@
                 newX =
                     Math.max(
                         0,
-                        Math.min(newX, maxX)
+                        Math.min(
+                            newX,
+                            maxX
+                        )
                     );
+
 
                 newY =
                     Math.max(
                         0,
-                        Math.min(newY, maxY)
+                        Math.min(
+                            newY,
+                            maxY
+                        )
                     );
 
 
@@ -722,6 +820,7 @@
 
                 element.style.left =
                     newX + "px";
+
 
                 element.style.top =
                     newY + "px";
@@ -735,6 +834,7 @@
             function(event) {
 
                 dragging = false;
+
 
                 try {
 
@@ -766,7 +866,7 @@
 
     /*
      * ============================================================
-     * BOUTON PRÊT
+     * PRÊT
      * ============================================================
      */
 
@@ -781,12 +881,14 @@
                 );
 
                 return;
+
             }
 
 
             mode = "ready";
 
             showingResults = false;
+
 
             choices.forEach(
                 choice =>
@@ -797,6 +899,7 @@
             status.textContent =
                 "Mode prêt : clique sur un choix pour lui ajouter 1 point.";
 
+
             render();
 
         }
@@ -805,7 +908,7 @@
 
     /*
      * ============================================================
-     * BOUTON MODIFIER
+     * MODIFIER
      * ============================================================
      */
 
@@ -817,14 +920,26 @@
 
             showingResults = false;
 
+
             choices.forEach(
-                choice =>
-                    choice.winner = false
+                choice => {
+
+                    choice.winner = false;
+
+                    /*
+                     * Si un choix était bloqué,
+                     * on le débloque en mode modification.
+                     */
+
+                    choice.blocked = false;
+
+                }
             );
 
 
             status.textContent =
                 "Mode modification : tu peux déplacer les choix et en ajouter.";
+
 
             render();
 
@@ -834,7 +949,7 @@
 
     /*
      * ============================================================
-     * BOUTON RECOMMENCER
+     * RECOMMENCER
      * ============================================================
      */
 
@@ -849,6 +964,8 @@
 
                     choice.winner = false;
 
+                    choice.blocked = false;
+
                 }
             );
 
@@ -857,8 +974,6 @@
 
             /*
              * On reste en mode prêt.
-             *
-             * Les encadrés ne bougent donc pas.
              */
 
             mode = "ready";
@@ -866,6 +981,7 @@
 
             status.textContent =
                 "Nouvelle partie : clique sur les choix pour compter les points.";
+
 
             render();
 
@@ -875,7 +991,7 @@
 
     /*
      * ============================================================
-     * AFFICHER LES RÉSULTATS
+     * RÉSULTATS
      * ============================================================
      */
 
@@ -884,15 +1000,14 @@
         function() {
 
             if (choices.length === 0) {
+
                 return;
+
             }
 
 
-            /*
-             * Chercher le score maximum
-             */
-
             let highestScore = 0;
+
 
             choices.forEach(
                 choice => {
@@ -910,14 +1025,6 @@
                 }
             );
 
-
-            /*
-             * Marquer tous les choix
-             * qui ont le meilleur score.
-             *
-             * Il peut donc y avoir
-             * plusieurs gagnants en cas d'égalité.
-             */
 
             choices.forEach(
                 choice => {
@@ -954,7 +1061,7 @@
 
     /*
      * ============================================================
-     * BOUTON AJOUTER
+     * AJOUTER
      * ============================================================
      */
 
@@ -965,8 +1072,7 @@
 
 
     /*
-     * ENTER DANS LE CHAMP
-     * = AJOUTER
+     * ENTER = AJOUTER
      */
 
     choiceInput.addEventListener(
