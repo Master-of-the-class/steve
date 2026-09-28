@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compteur de choix</title>
+
+```
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f3f4f6;
+        color: #222;
+    }
+
+    header {
+        background: #222;
+        color: white;
+        padding: 15px 20px;
+        text-align: center;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 15px;
+        background: white;
+        border-bottom: 1px solid #ddd;
+        justify-content: center;
+    }
+
+    button {
+        border: none;
+        border-radius: 8px;
+        padding: 11px 18px;
+        font-size: 15px;
+        cursor: pointer;
+        background: #444;
+        color: white;
+    }
+
+    button:hover {
+        opacity: 0.85;
+    }
+
+    #readyButton {
+        background: #198754;
+    }
+
+    #editButton {
+        background: #0d6efd;
+    }
+
+    #restartButton {
+        background: #dc3545;
+    }
+
+    #resultsButton {
+        background: #6f42c1;
+    }
+
+    .add-choice {
+        display: flex;
+        gap: 8px;
+        padding: 15px;
+        background: white;
+        justify-content: center;
+    }
+
+    #choiceInput {
+        width: 300px;
+        max-width: 70%;
+        padding: 11px;
+        border: 1px solid #bbb;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    #addButton {
+        background: #198754;
+    }
+
+    #status {
+        text-align: center;
+        padding: 10px;
+        font-weight: bold;
+    }
+
+    /*
+     * Zone dans laquelle les encadrés peuvent être déplacés
+     */
+    #board {
+        position: relative;
+        margin: 15px;
+        min-height: 600px;
+        background:
+            linear-gradient(#ddd 1px, transparent 1px),
+            linear-gradient(90deg, #ddd 1px, transparent 1px);
+        background-size: 25px 25px;
+        border: 2px solid #aaa;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    /*
+     * Encadré d'un choix
+     */
+    .choice {
+        position: absolute;
+
+        width: 170px;
+        min-height: 100px;
+
+        padding: 15px;
+
+        background: white;
+        border: 3px solid #555;
+        border-radius: 12px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        text-align: center;
+
+        user-select: none;
+
+        cursor: grab;
+
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+
+        transition:
+            box-shadow 0.15s,
+            border-color 0.15s,
+            background 0.15s;
+    }
+
+    .choice:active {
+        cursor: grabbing;
+    }
+
+    /*
+     * En mode prêt, les encadrés ne peuvent plus être déplacés
+     */
+    .ready-mode .choice {
+        cursor: pointer;
+    }
+
+    .ready-mode .choice:hover {
+        transform: scale(1.03);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+    }
+
+    .choice-name {
+        font-size: 18px;
+        font-weight: bold;
+        word-break: break-word;
+    }
+
+    /*
+     * Compteur
+     */
+    .counter {
+        display: none;
+        margin-top: 10px;
+        font-size: 26px;
+        font-weight: bold;
+        color: #6f42c1;
+    }
+
+    /*
+     * Quand les résultats sont affichés
+     */
+    .show-results .counter {
+        display: block;
+    }
+
+    /*
+     * Choix gagnant
+     */
+    .winner {
+        border-color: #ffc107;
+        background: #fff8dc;
+        box-shadow:
+            0 0 0 5px #ffc107,
+            0 8px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .winner::after {
+        content: "🏆";
+        position: absolute;
+        top: -20px;
+        right: -15px;
+        font-size: 32px;
+    }
+
+    /*
+     * Message lorsqu'il n'y a aucun choix
+     */
+    #emptyMessage {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #888;
+        font-size: 18px;
+    }
+
+    @media (max-width: 600px) {
+
+        #board {
+            min-height: 500px;
+        }
+
+        .choice {
+            width: 140px;
+            min-height: 90px;
+        }
+
+        .controls {
+            flex-direction: column;
+        }
+
+        .controls button {
+            width: 100%;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<header>
+    <h1>🎯 Compteur de choix</h1>
+</header>
+
+<!-- Ajouter un choix -->
+
+<div class="add-choice">
+
+```
+<input
+    type="text"
+    id="choiceInput"
+    placeholder="Nom du choix..."
+    maxlength="100"
+>
+
+<button id="addButton">
+    ➕ Ajouter
+</button>
+```
+
+</div>
+
+<!-- Boutons de contrôle -->
+
+<div class="controls">
+
+```
+<button id="readyButton">
+    ✓ Prêt
+</button>
+
+<button id="editButton">
+    ✏️ Modifier
+</button>
+
+<button id="restartButton">
+    🔄 Recommencer
+</button>
+
+<button id="resultsButton">
+    🏆 Afficher les résultats
+</button>
+```
+
+</div>
+
+<div id="status">
+    Mode modification : ajoute et déplace tes choix.
+</div>
+
+<!-- Zone de travail -->
+
+<div id="board">
+
+```
+<div id="emptyMessage">
+    Ajoute un choix pour commencer.
+</div>
+```
+
+</div>
+
+<script>
+
+    /*
+     * ============================================================
+     * VARIABLES
+     * ============================================================
+     */
+
+    const board = document.getElementById("board");
+
+    const choiceInput =
+        document.getElementById("choiceInput");
+
+    const addButton =
+        document.getElementById("addButton");
+
+    const readyButton =
+        document.getElementById("readyButton");
+
+    const editButton =
+        document.getElementById("editButton");
+
+    const restartButton =
+        document.getElementById("restartButton");
+
+    const resultsButton =
+        document.getElementById("resultsButton");
+
+    const status =
+        document.getElementById("status");
+
+    const emptyMessage =
+        document.getElementById("emptyMessage");
+
+
+    /*
+     * Liste des choix
+     *
+     * Exemple :
+     *
+     * [
+     *     {
+     *         id: 1,
+     *         name: "Pizza",
+     *         score: 4,
+     *         x: 100,
+     *         y: 50
+     *     }
+     * ]
+     */
+
+    let choices = [];
+
+    let nextId = 1;
+
+    /*
+     * Deux modes :
+     *
+     * "edit"  = on peut déplacer les encadrés
+     * "ready" = les clics donnent des points
+     */
+
+    let mode = "edit";
+
+    let showingResults = false;
+
+
+    /*
+     * ============================================================
+     * AJOUTER UN CHOIX
+     * ============================================================
+     */
+
+    function addChoice() {
+
+        const name =
+            choiceInput.value.trim();
+
+        if (name === "") {
+            choiceInput.focus();
+            return;
+        }
+
+        /*
+         * Position initiale de l'encadré.
+         *
+         * On décale chaque nouveau choix
+         * pour éviter qu'ils soient exactement
+         * l'un par-dessus l'autre.
+         */
+
+        const offset =
+            choices.length * 30;
+
+        const choice = {
+
+            id: nextId++,
+
+            name: name,
+
+            score: 0,
+
+            x: 30 + (offset % 500),
+
+            y: 30 + (offset % 300)
+
+        };
+
+        choices.push(choice);
+
+        choiceInput.value = "";
+
+        showingResults = false;
+
+        render();
+
+        choiceInput.focus();
+    }
+
+
+    /*
+     * ============================================================
+     * AFFICHER LES CHOIX
+     * ============================================================
+     */
+
+    function render() {
+
+        /*
+         * Supprimer les anciens encadrés
+         */
+
+        board
+            .querySelectorAll(".choice")
+            .forEach(element => element.remove());
+
+
+        /*
+         * Afficher ou cacher le message
+         */
+
+        if (choices.length === 0) {
+
+            emptyMessage.style.display = "block";
+
+        } else {
+
+            emptyMessage.style.display = "none";
+        }
+
+
+        /*
+         * Classes générales
+         */
+
+        board.classList.toggle(
+            "ready-mode",
+            mode === "ready"
+        );
+
+        board.classList.toggle(
+            "show-results",
+            showingResults
+        );
+
+
+        /*
+         * Créer chaque encadré
+         */
+
+        choices.forEach(choice => {
+
+            const element =
+                document.createElement("div");
+
+            element.className = "choice";
+
+            element.dataset.id =
+                choice.id;
+
+            element.style.left =
+                choice.x + "px";
+
+            element.style.top =
+                choice.y + "px";
+
+
+            /*
+             * Nom
+             */
+
+            const name =
+                document.createElement("div");
+
+            name.className =
+                "choice-name";
+
+            name.textContent =
+                choice.name;
+
+
+            /*
+             * Compteur
+             */
+
+            const counter =
+                document.createElement("div");
+
+            counter.className =
+                "counter";
+
+            counter.textContent =
+                choice.score;
+
+
+            element.appendChild(name);
+
+            element.appendChild(counter);
+
+
+            /*
+             * Gagnant
+             */
+
+            if (
+                showingResults &&
+                choice.winner
+            ) {
+
+                element.classList.add("winner");
+
+            }
+
+
+            /*
+             * Mode prêt :
+             *
+             * un clic ajoute 1 point
+             */
+
+            element.addEventListener(
+                "click",
+                function(event) {
+
+                    /*
+                     * En mode modification,
+                     * le clic ne fait rien.
+                     */
+
+                    if (mode !== "ready") {
+                        return;
+                    }
+
+
+                    /*
+                     * Ajouter un point
+                     */
+
+                    choice.score++;
+
+                    /*
+                     * Les résultats disparaissent
+                     * dès qu'on recommence à compter.
+                     */
+
+                    showingResults = false;
+
+                    choices.forEach(
+                        c => c.winner = false
+                    );
+
+                    render();
+
+                }
+            );
+
+
+            /*
+             * Déplacement
+             */
+
+            enableDragging(
+                element,
+                choice
+            );
+
+
+            board.appendChild(element);
+
+        });
+
+    }
+
+
+    /*
+     * ============================================================
+     * DÉPLACEMENT DES ENCADRÉS
+     * ============================================================
+     */
+
+    function enableDragging(
+        element,
+        choice
+    ) {
+
+        /*
+         * Impossible de déplacer
+         * en mode prêt.
+         */
+
+        if (mode !== "edit") {
+            return;
+        }
+
+
+        let dragging = false;
+
+        let offsetX = 0;
+
+        let offsetY = 0;
+
+
+        element.addEventListener(
+            "pointerdown",
+            function(event) {
+
+                if (mode !== "edit") {
+                    return;
+                }
+
+                dragging = true;
+
+                const rect =
+                    element.getBoundingClientRect();
+
+                offsetX =
+                    event.clientX - rect.left;
+
+                offsetY =
+                    event.clientY - rect.top;
+
+
+                element.setPointerCapture(
+                    event.pointerId
+                );
+
+            }
+        );
+
+
+        element.addEventListener(
+            "pointermove",
+            function(event) {
+
+                if (!dragging) {
+                    return;
+                }
+
+                const boardRect =
+                    board.getBoundingClientRect();
+
+                const elementWidth =
+                    element.offsetWidth;
+
+                const elementHeight =
+                    element.offsetHeight;
+
+
+                let newX =
+                    event.clientX -
+                    boardRect.left -
+                    offsetX;
+
+                let newY =
+                    event.clientY -
+                    boardRect.top -
+                    offsetY;
+
+
+                /*
+                 * Empêcher l'encadré
+                 * de sortir de la zone.
+                 */
+
+                const maxX =
+                    board.clientWidth -
+                    elementWidth;
+
+                const maxY =
+                    board.clientHeight -
+                    elementHeight;
+
+
+                newX =
+                    Math.max(
+                        0,
+                        Math.min(newX, maxX)
+                    );
+
+                newY =
+                    Math.max(
+                        0,
+                        Math.min(newY, maxY)
+                    );
+
+
+                choice.x = newX;
+
+                choice.y = newY;
+
+
+                element.style.left =
+                    newX + "px";
+
+                element.style.top =
+                    newY + "px";
+
+            }
+        );
+
+
+        element.addEventListener(
+            "pointerup",
+            function(event) {
+
+                dragging = false;
+
+                try {
+
+                    element.releasePointerCapture(
+                        event.pointerId
+                    );
+
+                } catch (error) {
+
+                    // Rien à faire
+
+                }
+
+            }
+        );
+
+
+        element.addEventListener(
+            "pointercancel",
+            function() {
+
+                dragging = false;
+
+            }
+        );
+
+    }
+
+
+    /*
+     * ============================================================
+     * BOUTON PRÊT
+     * ============================================================
+     */
+
+    readyButton.addEventListener(
+        "click",
+        function() {
+
+            if (choices.length === 0) {
+
+                alert(
+                    "Ajoute au moins un choix avant de commencer."
+                );
+
+                return;
+            }
+
+
+            mode = "ready";
+
+            showingResults = false;
+
+            choices.forEach(
+                choice =>
+                    choice.winner = false
+            );
+
+
+            status.textContent =
+                "Mode prêt : clique sur un choix pour lui ajouter 1 point.";
+
+            render();
+
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * BOUTON MODIFIER
+     * ============================================================
+     */
+
+    editButton.addEventListener(
+        "click",
+        function() {
+
+            mode = "edit";
+
+            showingResults = false;
+
+            choices.forEach(
+                choice =>
+                    choice.winner = false
+            );
+
+
+            status.textContent =
+                "Mode modification : tu peux déplacer les choix et en ajouter.";
+
+            render();
+
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * BOUTON RECOMMENCER
+     * ============================================================
+     */
+
+    restartButton.addEventListener(
+        "click",
+        function() {
+
+            choices.forEach(
+                choice => {
+
+                    choice.score = 0;
+
+                    choice.winner = false;
+
+                }
+            );
+
+
+            showingResults = false;
+
+            /*
+             * On reste en mode prêt.
+             *
+             * Les encadrés ne bougent donc pas.
+             */
+
+            mode = "ready";
+
+
+            status.textContent =
+                "Nouvelle partie : clique sur les choix pour compter les points.";
+
+            render();
+
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * AFFICHER LES RÉSULTATS
+     * ============================================================
+     */
+
+    resultsButton.addEventListener(
+        "click",
+        function() {
+
+            if (choices.length === 0) {
+                return;
+            }
+
+
+            /*
+             * Chercher le score maximum
+             */
+
+            let highestScore = 0;
+
+            choices.forEach(
+                choice => {
+
+                    if (
+                        choice.score >
+                        highestScore
+                    ) {
+
+                        highestScore =
+                            choice.score;
+
+                    }
+
+                }
+            );
+
+
+            /*
+             * Marquer tous les choix
+             * qui ont le meilleur score.
+             *
+             * Il peut donc y avoir
+             * plusieurs gagnants en cas d'égalité.
+             */
+
+            choices.forEach(
+                choice => {
+
+                    choice.winner =
+                        choice.score ===
+                        highestScore;
+
+                }
+            );
+
+
+            showingResults = true;
+
+
+            if (highestScore === 0) {
+
+                status.textContent =
+                    "Résultats : aucun point n'a encore été attribué.";
+
+            } else {
+
+                status.textContent =
+                    "Résultats affichés !";
+
+            }
+
+
+            render();
+
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * BOUTON AJOUTER
+     * ============================================================
+     */
+
+    addButton.addEventListener(
+        "click",
+        addChoice
+    );
+
+
+    /*
+     * ENTER DANS LE CHAMP
+     * = AJOUTER
+     */
+
+    choiceInput.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Enter") {
+
+                addChoice();
+
+            }
+
+        }
+    );
+
+
+    /*
+     * ============================================================
+     * INITIALISATION
+     * ============================================================
+     */
+
+    render();
+
+</script>
+
+</body>
+</html>
