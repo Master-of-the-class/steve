@@ -71,6 +71,18 @@
         background: #6f42c1;
     }
 
+    #saveButton {
+        background: #198754;
+    }
+
+    #loadButton {
+        background: #0d6efd;
+    }
+
+    #resetButton {
+        background: #8b0000;
+    }
+
     .add-choice {
         display: flex;
         gap: 8px;
@@ -96,6 +108,7 @@
         text-align: center;
         padding: 10px;
         font-weight: bold;
+        min-height: 40px;
     }
 
     #board {
@@ -159,13 +172,8 @@
     }
 
     /*
-     * ========================================================
-     * EFFET VISUEL LORS D'UN CLIC
-     * ========================================================
-     *
-     * Cette classe est ajoutée pendant 0,5 seconde.
+     * Effet de clic pendant 0,5 seconde
      */
-
     .choice.clicked {
         background: #90ee90;
         border-color: #198754;
@@ -173,11 +181,8 @@
     }
 
     /*
-     * Pendant le blocage de 0,5 seconde,
-     * le curseur indique que le bouton est temporairement
-     * indisponible.
+     * Choix temporairement bloqué
      */
-
     .choice.blocked {
         cursor: not-allowed;
     }
@@ -256,6 +261,10 @@
     <h1>🎯 Compteur de choix</h1>
 </header>
 
+<!-- ============================================================
+     AJOUTER UN CHOIX
+     ============================================================ -->
+
 <div class="add-choice">
 
 
@@ -272,6 +281,10 @@
 
 
 </div>
+
+<!-- ============================================================
+     BOUTONS
+     ============================================================ -->
 
 <div class="controls">
 
@@ -292,12 +305,28 @@
     🏆 Afficher les résultats
 </button>
 
+<button id="saveButton">
+    💾 Enregistrer
+</button>
+
+<button id="loadButton">
+    📂 Remettre
+</button>
+
+<button id="resetButton">
+    🗑️ Reset
+</button>
+
 
 </div>
 
 <div id="status">
     Mode modification : ajoute et déplace tes choix.
 </div>
+
+<!-- ============================================================
+     ZONE DE TRAVAIL
+     ============================================================ -->
 
 <div id="board">
 
@@ -338,11 +367,30 @@
     const resultsButton =
         document.getElementById("resultsButton");
 
+    const saveButton =
+        document.getElementById("saveButton");
+
+    const loadButton =
+        document.getElementById("loadButton");
+
+    const resetButton =
+        document.getElementById("resetButton");
+
     const status =
         document.getElementById("status");
 
     const emptyMessage =
         document.getElementById("emptyMessage");
+
+
+    /*
+     * ============================================================
+     * CONFIGURATION DE LA SAUVEGARDE
+     * ============================================================
+     */
+
+    const STORAGE_KEY =
+        "compteur_choix_sauvegarde";
 
 
     /*
@@ -371,6 +419,7 @@
         const name =
             choiceInput.value.trim();
 
+
         if (name === "") {
 
             choiceInput.focus();
@@ -394,13 +443,6 @@
             x: 30 + (offset % 500),
 
             y: 30 + (offset % 300),
-
-            /*
-             * Bloqueur individuel.
-             *
-             * false = le choix peut être cliqué
-             * true  = le choix est temporairement bloqué
-             */
 
             blocked: false,
 
@@ -486,11 +528,6 @@
                     choice.y + "px";
 
 
-                /*
-                 * Si ce choix est temporairement bloqué,
-                 * on ajoute la classe visuelle.
-                 */
-
                 if (choice.blocked) {
 
                     element.classList.add(
@@ -501,7 +538,9 @@
 
 
                 /*
-                 * Nom
+                 * =================================================
+                 * NOM
+                 * =================================================
                  */
 
                 const name =
@@ -515,7 +554,9 @@
 
 
                 /*
-                 * Compteur
+                 * =================================================
+                 * COMPTEUR
+                 * =================================================
                  */
 
                 const counter =
@@ -534,7 +575,9 @@
 
 
                 /*
-                 * Gagnant
+                 * =================================================
+                 * GAGNANT
+                 * =================================================
                  */
 
                 if (
@@ -560,7 +603,8 @@
                     function() {
 
                         /*
-                         * Pas de comptage en mode modification.
+                         * En mode modification,
+                         * les clics ne comptent pas.
                          */
 
                         if (mode !== "ready") {
@@ -571,10 +615,7 @@
 
 
                         /*
-                         * LE BLOQUEUR
-                         *
-                         * Si le choix vient d'être cliqué,
-                         * on ignore le nouveau clic.
+                         * Protection contre le double clic.
                          */
 
                         if (choice.blocked) {
@@ -592,14 +633,15 @@
 
 
                         /*
-                         * Ajouter 1 point.
+                         * Ajouter un point.
                          */
 
                         choice.score++;
 
 
                         /*
-                         * Effacer les résultats précédents.
+                         * Les anciens résultats
+                         * ne sont plus valides.
                          */
 
                         showingResults = false;
@@ -612,12 +654,7 @@
 
 
                         /*
-                         * =================================================
-                         * EFFET VISUEL
-                         * =================================================
-                         *
-                         * On change temporairement la couleur
-                         * de l'encadré.
+                         * Effet visuel.
                          */
 
                         element.classList.add(
@@ -626,18 +663,17 @@
 
 
                         /*
-                         * On ne fait PAS render()
-                         * ici immédiatement.
-                         *
-                         * Cela permet de conserver
-                         * l'effet visuel.
+                         * Mise à jour immédiate
+                         * du compteur.
                          */
 
+                        counter.textContent =
+                            choice.score;
+
+
                         /*
-                         * Après 500 ms :
-                         *
-                         * - enlever la couleur
-                         * - débloquer le choix
+                         * Après 0,5 seconde,
+                         * le choix redevient cliquable.
                          */
 
                         setTimeout(
@@ -653,15 +689,6 @@
                             },
                             500
                         );
-
-
-                        /*
-                         * Mettre à jour uniquement
-                         * le compteur affiché.
-                         */
-
-                        counter.textContent =
-                            choice.score;
 
                     }
                 );
@@ -689,7 +716,7 @@
 
     /*
      * ============================================================
-     * DÉPLACEMENT
+     * DÉPLACEMENT DES CHOIX
      * ============================================================
      */
 
@@ -697,6 +724,11 @@
         element,
         choice
     ) {
+
+        /*
+         * Impossible de déplacer
+         * en mode prêt.
+         */
 
         if (mode !== "edit") {
 
@@ -813,9 +845,11 @@
                     );
 
 
-                choice.x = newX;
+                choice.x =
+                    newX;
 
-                choice.y = newY;
+                choice.y =
+                    newY;
 
 
                 element.style.left =
@@ -866,6 +900,231 @@
 
     /*
      * ============================================================
+     * ENREGISTRER
+     * ============================================================
+     */
+
+    function saveData() {
+
+        const data = {
+
+            choices: choices,
+
+            nextId: nextId
+
+        };
+
+
+        try {
+
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(data)
+            );
+
+
+            status.textContent =
+                "💾 Les choix ont été enregistrés.";
+
+        } catch (error) {
+
+            console.error(
+                "Erreur de sauvegarde :",
+                error
+            );
+
+
+            status.textContent =
+                "❌ Impossible d'enregistrer les choix.";
+
+        }
+
+    }
+
+
+    /*
+     * ============================================================
+     * REMETTRE LA SAUVEGARDE
+     * ============================================================
+     */
+
+    function loadData() {
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    STORAGE_KEY
+                );
+
+
+            if (!saved) {
+
+                status.textContent =
+                    "Aucune sauvegarde trouvée.";
+
+                return;
+
+            }
+
+
+            const data =
+                JSON.parse(saved);
+
+
+            if (
+                !data ||
+                !Array.isArray(data.choices)
+            ) {
+
+                status.textContent =
+                    "❌ La sauvegarde est invalide.";
+
+                return;
+
+            }
+
+
+            /*
+             * Restaurer les choix.
+             */
+
+            choices =
+                data.choices;
+
+
+            /*
+             * Sécurité :
+             * les choix remis ne doivent jamais
+             * rester bloqués.
+             */
+
+            choices.forEach(
+                choice => {
+
+                    choice.blocked = false;
+
+                    choice.winner = false;
+
+                }
+            );
+
+
+            nextId =
+                Number(data.nextId) ||
+                (
+                    choices.length + 1
+                );
+
+
+            showingResults =
+                false;
+
+
+            /*
+             * On remet en mode modification
+             * afin de permettre de vérifier
+             * la disposition.
+             */
+
+            mode = "edit";
+
+
+            render();
+
+
+            status.textContent =
+                "📂 La sauvegarde a été remise.";
+
+        } catch (error) {
+
+            console.error(
+                "Erreur de chargement :",
+                error
+            );
+
+
+            status.textContent =
+                "❌ Impossible de remettre la sauvegarde.";
+
+        }
+
+    }
+
+
+    /*
+     * ============================================================
+     * RESET COMPLET
+     * ============================================================
+     */
+
+    function resetEverything() {
+
+        /*
+         * Demander une confirmation.
+         */
+
+        const confirmed =
+            confirm(
+                "⚠️ RESET COMPLET\n\n" +
+                "Cette action va supprimer :\n\n" +
+                "• tous les choix\n" +
+                "• tous les compteurs\n" +
+                "• toutes les positions\n" +
+                "• la sauvegarde enregistrée\n\n" +
+                "Cette action est irréversible.\n\n" +
+                "Voulez-vous vraiment continuer ?"
+            );
+
+
+        /*
+         * L'utilisateur a annulé.
+         */
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        /*
+         * Tout effacer.
+         */
+
+        choices = [];
+
+        nextId = 1;
+
+        mode = "edit";
+
+        showingResults = false;
+
+
+        /*
+         * Supprimer la sauvegarde.
+         */
+
+        localStorage.removeItem(
+            STORAGE_KEY
+        );
+
+
+        /*
+         * Rafraîchir l'affichage.
+         */
+
+        render();
+
+
+        status.textContent =
+            "🗑️ Tout a été réinitialisé.";
+
+    }
+
+
+    /*
+     * ============================================================
      * PRÊT
      * ============================================================
      */
@@ -891,8 +1150,13 @@
 
 
             choices.forEach(
-                choice =>
-                    choice.winner = false
+                choice => {
+
+                    choice.winner = false;
+
+                    choice.blocked = false;
+
+                }
             );
 
 
@@ -925,11 +1189,6 @@
                 choice => {
 
                     choice.winner = false;
-
-                    /*
-                     * Si un choix était bloqué,
-                     * on le débloque en mode modification.
-                     */
 
                     choice.blocked = false;
 
@@ -972,8 +1231,10 @@
 
             showingResults = false;
 
+
             /*
-             * On reste en mode prêt.
+             * Les choix restent exactement
+             * où ils étaient.
              */
 
             mode = "ready";
@@ -1061,7 +1322,43 @@
 
     /*
      * ============================================================
-     * AJOUTER
+     * BOUTON ENREGISTRER
+     * ============================================================
+     */
+
+    saveButton.addEventListener(
+        "click",
+        saveData
+    );
+
+
+    /*
+     * ============================================================
+     * BOUTON REMETTRE
+     * ============================================================
+     */
+
+    loadButton.addEventListener(
+        "click",
+        loadData
+    );
+
+
+    /*
+     * ============================================================
+     * BOUTON RESET
+     * ============================================================
+     */
+
+    resetButton.addEventListener(
+        "click",
+        resetEverything
+    );
+
+
+    /*
+     * ============================================================
+     * BOUTON AJOUTER
      * ============================================================
      */
 
@@ -1072,7 +1369,9 @@
 
 
     /*
+     * ============================================================
      * ENTER = AJOUTER
+     * ============================================================
      */
 
     choiceInput.addEventListener(
